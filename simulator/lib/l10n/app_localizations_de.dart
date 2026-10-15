@@ -324,4 +324,36 @@ class AppLocalizationsDe extends AppLocalizations {
   @override
   String get apiErrorBanner =>
       'Keine Verbindung zur Plattform. Der Roboter versucht es weiter.';
+
+  @override
+  String get pairTitle => 'Automatisch koppeln';
+
+  @override
+  String get pairSellerApi => 'Verkäufer-API';
+
+  @override
+  String get pairSellerApiHint =>
+      'Die Adresse der API der Verkäufer-PWA. Ein dort angelegter neuer Roboter kommt hier von selbst an.';
+
+  @override
+  String get pairWaiting => 'Warten auf einen Roboter aus der Verkäufer-PWA…';
+
+  @override
+  String pairCode(String code) {
+    return 'Code: $code';
+  }
+
+  @override
+  String pairReceived(String name) {
+    return 'Schlüssel von $name erhalten. Tippe auf Start.';
+  }
+
+  @override
+  String get pairUnreachable =>
+      'Die Verkäufer-API ist nicht erreichbar. Gib den Schlüssel selbst ein.';
+
+  @override
+  String pairAdded(String name) {
+    return '$name wurde zu den Robotern hinzugefügt.';
+  }
 }

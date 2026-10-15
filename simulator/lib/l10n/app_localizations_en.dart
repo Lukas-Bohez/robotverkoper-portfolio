@@ -324,4 +324,36 @@ class AppLocalizationsEn extends AppLocalizations {
   @override
   String get apiErrorBanner =>
       'No connection with the platform. The robot keeps trying.';
+
+  @override
+  String get pairTitle => 'Pair automatically';
+
+  @override
+  String get pairSellerApi => 'Seller API';
+
+  @override
+  String get pairSellerApiHint =>
+      'The address of the API of the seller PWA. A new robot made there arrives here by itself.';
+
+  @override
+  String get pairWaiting => 'Waiting for a robot from the seller PWA…';
+
+  @override
+  String pairCode(String code) {
+    return 'Code: $code';
+  }
+
+  @override
+  String pairReceived(String name) {
+    return 'Key of $name received. Tap Start.';
+  }
+
+  @override
+  String get pairUnreachable =>
+      'The seller API cannot be reached. Enter the key yourself.';
+
+  @override
+  String pairAdded(String name) {
+    return '$name was added to the robots.';
+  }
 }

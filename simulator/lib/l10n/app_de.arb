@@ -84,5 +84,22 @@
   "newTrip": "Neue Fahrt",
   "logTitle": "Protokoll",
   "logEntry": "{kind, select, tripReceived{Neue Fahrt erhalten} arrivedPickup{Beim Geschäft angekommen} arrivedDropoff{Beim Kunden angekommen} loaded{In Fach {detail} geladen} delivered{Geliefert} command{Befehl: {detail}} event{Gemeldet: {detail}} recovered{Behoben, der Roboter fährt weiter} returnedHome{Zurück in der Station} apiError{Keine Verbindung zur Plattform} apiRestored{Verbindung wiederhergestellt} pinAccepted{PIN akzeptiert} pinRejected{Falsche PIN} other{{kind}}}",
-  "apiErrorBanner": "Keine Verbindung zur Plattform. Der Roboter versucht es weiter."
+  "apiErrorBanner": "Keine Verbindung zur Plattform. Der Roboter versucht es weiter.",
+  "pairTitle": "Automatisch koppeln",
+  "pairSellerApi": "Verkäufer-API",
+  "pairSellerApiHint": "Die Adresse der API der Verkäufer-PWA. Ein dort angelegter neuer Roboter kommt hier von selbst an.",
+  "pairWaiting": "Warten auf einen Roboter aus der Verkäufer-PWA…",
+  "pairCode": "Code: {code}",
+  "@pairCode": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "pairReceived": "Schlüssel von {name} erhalten. Tippe auf Start.",
+  "@pairReceived": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "pairUnreachable": "Die Verkäufer-API ist nicht erreichbar. Gib den Schlüssel selbst ein.",
+  "pairAdded": "{name} wurde zu den Robotern hinzugefügt.",
+  "@pairAdded": {
+    "placeholders": { "name": { "type": "String" } }
+  }
 }

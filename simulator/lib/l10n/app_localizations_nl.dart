@@ -327,4 +327,36 @@ class AppLocalizationsNl extends AppLocalizations {
   @override
   String get apiErrorBanner =>
       'Geen verbinding met het platform. De robot blijft het proberen.';
+
+  @override
+  String get pairTitle => 'Automatisch koppelen';
+
+  @override
+  String get pairSellerApi => 'Verkopers-API';
+
+  @override
+  String get pairSellerApiHint =>
+      'Het adres van de API van de verkopers-PWA. Een nieuwe robot daar komt hier vanzelf aan.';
+
+  @override
+  String get pairWaiting => 'Wachten op een robot van de verkopers-PWA…';
+
+  @override
+  String pairCode(String code) {
+    return 'Code: $code';
+  }
+
+  @override
+  String pairReceived(String name) {
+    return 'Sleutel van $name ontvangen. Tik op Start.';
+  }
+
+  @override
+  String get pairUnreachable =>
+      'De verkopers-API is niet bereikbaar. Vul de sleutel zelf in.';
+
+  @override
+  String pairAdded(String name) {
+    return '$name is toegevoegd aan de robots.';
+  }
 }

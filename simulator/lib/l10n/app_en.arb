@@ -84,5 +84,22 @@
   "newTrip": "New trip",
   "logTitle": "Log",
   "logEntry": "{kind, select, tripReceived{New trip received} arrivedPickup{Arrived at the shop} arrivedDropoff{Arrived at the customer} loaded{Loaded in compartment {detail}} delivered{Delivered} command{Command: {detail}} event{Reported: {detail}} recovered{Recovered, the robot continues} returnedHome{Back at the station} apiError{No connection with the platform} apiRestored{Connection restored} pinAccepted{PIN accepted} pinRejected{Wrong PIN} other{{kind}}}",
-  "apiErrorBanner": "No connection with the platform. The robot keeps trying."
+  "apiErrorBanner": "No connection with the platform. The robot keeps trying.",
+  "pairTitle": "Pair automatically",
+  "pairSellerApi": "Seller API",
+  "pairSellerApiHint": "The address of the API of the seller PWA. A new robot made there arrives here by itself.",
+  "pairWaiting": "Waiting for a robot from the seller PWA…",
+  "pairCode": "Code: {code}",
+  "@pairCode": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "pairReceived": "Key of {name} received. Tap Start.",
+  "@pairReceived": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "pairUnreachable": "The seller API cannot be reached. Enter the key yourself.",
+  "pairAdded": "{name} was added to the robots.",
+  "@pairAdded": {
+    "placeholders": { "name": { "type": "String" } }
+  }
 }

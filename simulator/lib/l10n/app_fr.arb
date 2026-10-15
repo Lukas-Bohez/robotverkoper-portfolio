@@ -84,5 +84,22 @@
   "newTrip": "Nouveau trajet",
   "logTitle": "Journal",
   "logEntry": "{kind, select, tripReceived{Nouveau trajet reçu} arrivedPickup{Arrivé au commerce} arrivedDropoff{Arrivé chez le client} loaded{Chargé dans le compartiment {detail}} delivered{Livré} command{Commande : {detail}} event{Signalé : {detail}} recovered{Rétabli, le robot repart} returnedHome{De retour à la station} apiError{Pas de connexion à la plateforme} apiRestored{Connexion rétablie} pinAccepted{Code PIN accepté} pinRejected{Mauvais code PIN} other{{kind}}}",
-  "apiErrorBanner": "Pas de connexion à la plateforme. Le robot continue d'essayer."
+  "apiErrorBanner": "Pas de connexion à la plateforme. Le robot continue d'essayer.",
+  "pairTitle": "Associer automatiquement",
+  "pairSellerApi": "API vendeur",
+  "pairSellerApiHint": "L’adresse de l’API de la PWA du vendeur. Un nouveau robot créé là-bas arrive ici tout seul.",
+  "pairWaiting": "En attente d’un robot de la PWA du vendeur…",
+  "pairCode": "Code : {code}",
+  "@pairCode": {
+    "placeholders": { "code": { "type": "String" } }
+  },
+  "pairReceived": "Clé de {name} reçue. Appuyez sur Démarrer.",
+  "@pairReceived": {
+    "placeholders": { "name": { "type": "String" } }
+  },
+  "pairUnreachable": "L’API du vendeur est injoignable. Saisissez la clé vous-même.",
+  "pairAdded": "{name} a été ajouté aux robots.",
+  "@pairAdded": {
+    "placeholders": { "name": { "type": "String" } }
+  }
 }

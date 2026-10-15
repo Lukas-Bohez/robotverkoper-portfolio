@@ -575,6 +575,54 @@ abstract class AppLocalizations {
   /// In nl, this message translates to:
   /// **'Geen verbinding met het platform. De robot blijft het proberen.'**
   String get apiErrorBanner;
+
+  /// No description provided for @pairTitle.
+  ///
+  /// In nl, this message translates to:
+  /// **'Automatisch koppelen'**
+  String get pairTitle;
+
+  /// No description provided for @pairSellerApi.
+  ///
+  /// In nl, this message translates to:
+  /// **'Verkopers-API'**
+  String get pairSellerApi;
+
+  /// No description provided for @pairSellerApiHint.
+  ///
+  /// In nl, this message translates to:
+  /// **'Het adres van de API van de verkopers-PWA. Een nieuwe robot daar komt hier vanzelf aan.'**
+  String get pairSellerApiHint;
+
+  /// No description provided for @pairWaiting.
+  ///
+  /// In nl, this message translates to:
+  /// **'Wachten op een robot van de verkopers-PWA…'**
+  String get pairWaiting;
+
+  /// No description provided for @pairCode.
+  ///
+  /// In nl, this message translates to:
+  /// **'Code: {code}'**
+  String pairCode(String code);
+
+  /// No description provided for @pairReceived.
+  ///
+  /// In nl, this message translates to:
+  /// **'Sleutel van {name} ontvangen. Tik op Start.'**
+  String pairReceived(String name);
+
+  /// No description provided for @pairUnreachable.
+  ///
+  /// In nl, this message translates to:
+  /// **'De verkopers-API is niet bereikbaar. Vul de sleutel zelf in.'**
+  String get pairUnreachable;
+
+  /// No description provided for @pairAdded.
+  ///
+  /// In nl, this message translates to:
+  /// **'{name} is toegevoegd aan de robots.'**
+  String pairAdded(String name);
 }
 
 class _AppLocalizationsDelegate

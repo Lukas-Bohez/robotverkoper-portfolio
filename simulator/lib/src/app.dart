@@ -5,7 +5,10 @@ import 'language.dart';
 import 'ui/connect_screen.dart';
 
 class BotApp extends StatelessWidget {
-  const BotApp({super.key, required this.language});
+  const BotApp({super.key, required this.language, this.pairingEnabled = true});
+
+  /// Platform mode listens for the key of a robot that the seller makes (off in widget tests)
+  final bool pairingEnabled;
 
   /// The language chosen in the app (menu in the app bar); none: the language of the device
   final LanguageController language;
@@ -32,7 +35,7 @@ class BotApp extends StatelessWidget {
           localeListResolutionCallback: (device, _) => resolveLocale(device),
           localizationsDelegates: AppLocalizations.localizationsDelegates,
           supportedLocales: AppLocalizations.supportedLocales,
-          home: const ConnectScreen(),
+          home: ConnectScreen(pairingEnabled: pairingEnabled),
         ),
       ),
     );

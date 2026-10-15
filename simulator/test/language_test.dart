@@ -56,7 +56,7 @@ void main() {
     tester.platformDispatcher.localesTestValue = const [Locale('en', 'US')];
     addTearDown(tester.platformDispatcher.clearLocalesTestValue);
     final language = LanguageController();
-    await tester.pumpWidget(BotApp(language: language));
+    await tester.pumpWidget(BotApp(language: language, pairingEnabled: false));
     await tester.pumpAndSettle();
     expect(find.text('Start the robot'), findsOneWidget);
 

@@ -232,7 +232,7 @@ void main() {
 
   testWidgets('the connect screen starts a demo robot', (tester) async {
     tallScreen(tester);
-    await tester.pumpWidget(inApp(const ConnectScreen()));
+    await tester.pumpWidget(inApp(const ConnectScreen(pairingEnabled: false)));
     expect(find.text('Deze gsm wordt een bezorgrobot'), findsOneWidget);
 
     // The platform is the default; demo mode plays the platform itself
@@ -255,7 +255,7 @@ void main() {
     tester,
   ) async {
     tallScreen(tester);
-    await tester.pumpWidget(inApp(const ConnectScreen()));
+    await tester.pumpWidget(inApp(const ConnectScreen(pairingEnabled: false)));
 
     await tester.enterText(find.byKey(const Key('robot-name')), ' ');
     await tester.enterText(find.byKey(const Key('platform-url')), 'localhost');
@@ -307,7 +307,9 @@ void main() {
       tester,
     ) async {
       tallScreen(tester);
-      await tester.pumpWidget(inApp(const ConnectScreen()));
+      await tester.pumpWidget(
+        inApp(const ConnectScreen(pairingEnabled: false)),
+      );
       expect(find.text('Deze computer speelt een bezorgrobot'), findsOneWidget);
       expect(find.text('Deze gsm wordt een bezorgrobot'), findsNothing);
     }, variant: windows);

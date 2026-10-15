@@ -3,6 +3,8 @@ import 'package:lucide_icons_flutter/lucide_icons.dart';
 
 import '../../l10n/app_localizations.dart';
 import '../api/foot_router.dart';
+import '../api/pairing_client.dart';
+import '../api/pairing_watcher.dart';
 import '../api/graphql_robot_api.dart';
 import '../api/mock_robot_api.dart';
 import '../models/robot.dart';
@@ -65,6 +67,10 @@ class FleetEntry {
       );
 }
 
+/// Whether this is an http(s) address with a host
+bool isHttpAddress(Uri uri) =>
+    (uri.scheme == 'http' || uri.scheme == 'https') && uri.host.isNotEmpty;
+
 /// Several virtual robots in one app: they all keep driving, you look at one at a time.
 class FleetScreen extends StatefulWidget {
   const FleetScreen({
@@ -72,9 +78,15 @@ class FleetScreen extends StatefulWidget {
     required this.first,
     this.endpoint,
     this.unlockOnDevice = false,
+    this.sellerApi,
+    this.pairingClientFactory = defaultPairingClient,
   });
 
   final FleetEntry first;
+
+  /// Platform mode with a seller API: the robots that the seller makes join by themselves
+  final Uri? sellerApi;
+  final PairingClientFactory pairingClientFactory;
 
   /// Set for platform mode: more robots join with their own API key
   final Uri? endpoint;
@@ -89,6 +101,49 @@ class FleetScreen extends StatefulWidget {
 class _FleetScreenState extends State<FleetScreen> {
   late final List<FleetEntry> _entries = [widget.first];
   int _selected = 0;
+  PairingWatcher? _pairing;
+
+  @override
+  void initState() {
+    super.initState();
+    final sellerApi = widget.sellerApi;
+    if (widget.endpoint != null && sellerApi != null) {
+      _pairing = PairingWatcher(
+        clientFactory: widget.pairingClientFactory,
+        onDelivery: _joined,
+      )..start(sellerApi, keepWaiting: true);
+    }
+  }
+
+  @override
+  void dispose() {
+    _pairing?.dispose();
+    super.dispose();
+  }
+
+  /// The seller made another robot: it joins the fleet with its own key
+  void _joined(PairingDelivery delivery) {
+    if (!mounted) return;
+    final endpoint = Uri.tryParse(delivery.platformUrl);
+    final name = delivery.robotName.isEmpty
+        ? 'Robot #${_entries.length + 1}'
+        : delivery.robotName;
+    setState(() {
+      _entries.add(
+        FleetEntry.platform(
+          name,
+          endpoint != null && isHttpAddress(endpoint)
+              ? endpoint
+              : widget.endpoint!,
+          delivery.apiKey,
+        ),
+      );
+      _selected = _entries.length - 1;
+    });
+    ScaffoldMessenger.maybeOf(context)?.showSnackBar(
+      SnackBar(content: Text(AppLocalizations.of(context).pairAdded(name))),
+    );
+  }
 
   Future<void> _add() async {
     final entry = await showDialog<FleetEntry>(
