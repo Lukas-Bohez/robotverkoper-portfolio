@@ -1,0 +1,13 @@
+{
+  "extends": "@vue/tsconfig/tsconfig.dom.json",
+  "include": ["env.d.ts", "src/**/*", "src/**/*.vue", "vite.config.ts", "pwa.config.ts"],
+  "compilerOptions": {
+    "noUncheckedIndexedAccess": true,
+    "types": ["vite/client", "vite-plugin-pwa/client", "node"],
+    "paths": {
+      "@/*": ["./src/*"],
+      "#build/ui/*": ["./node_modules/.nuxt-ui/ui/*"]
+    },
+    "noEmit": true
+  }
+}

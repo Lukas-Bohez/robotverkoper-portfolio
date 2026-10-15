@@ -1,0 +1,92 @@
+export const nl = {
+  app: {
+    title: 'Robotverkoper',
+    tagline: 'Voor de makers van de bezorgrobots',
+    companies: 'Bedrijven',
+    logout: 'Uitloggen',
+    skip: 'Naar de inhoud',
+  },
+  login: {
+    title: 'Inloggen als robotverkoper',
+    email: 'E-mailadres',
+    password: 'Wachtwoord',
+    submit: 'Inloggen',
+    errors: {
+      invalid: 'Dit e-mailadres of wachtwoord klopt niet.',
+      tooMany: 'Te veel pogingen. Probeer het over enkele minuten opnieuw.',
+      network: 'Geen verbinding. Controleer je internet en probeer opnieuw.',
+      notConfigured:
+        'Inloggen is nog niet ingesteld op deze computer: de Firebase-waarden ontbreken in apps/seller-pwa/.env.',
+      unknown: 'Er ging iets mis. Probeer het opnieuw.',
+    },
+  },
+  forbidden: {
+    title: 'Geen toegang',
+    text: 'Dit paneel is voor de verkopers van de robots. Je account heeft die rol niet.',
+    error: 'We konden niet nagaan wie je bent. Probeer het later opnieuw.',
+  },
+  companies: {
+    title: 'Bedrijven',
+    intro:
+      'De bedrijven die jouw robots gebruiken. Je ziet hier geen personeel, klanten of e-mailadressen.',
+    loading: 'Bedrijven laden…',
+    empty: 'Er zijn nog geen bedrijven.',
+    loadError: 'De bedrijven konden niet geladen worden.',
+    name: 'Naam',
+    subdomain: 'Adres',
+    created: 'Aangemaakt',
+    robots: 'Robots',
+    openRobots: 'Robots van {name}',
+    new: {
+      title: 'Nieuw bedrijf',
+      name: 'Naam van het bedrijf',
+      subdomain: 'Adres van het bedrijf',
+      subdomainHint: 'Letters, cijfers en koppeltekens, bv. pizzeria-test. Je kunt het aanpassen.',
+      subdomainInvalid: 'Gebruik 2 tot 30 letters, cijfers of koppeltekens (niet aan het begin of einde).',
+      adminEmail: 'E-mailadres van de eerste beheerder',
+      adminHint:
+        'Die persoon krijgt een uitnodiging en beheert daarna het personeel en de rollen van het bedrijf.',
+      submit: 'Bedrijf aanmaken',
+      done: 'Het bedrijf {name} is aangemaakt. De beheerder is uitgenodigd.',
+      error: 'Het bedrijf kon niet aangemaakt worden.',
+    },
+  },
+  robots: {
+    title: 'Robots van {name}',
+    back: 'Alle bedrijven',
+    loading: 'Robots laden…',
+    loadError: 'De robots konden niet geladen worden.',
+    empty: 'Dit bedrijf heeft nog geen robots.',
+    notFound: 'Dit bedrijf bestaat niet (meer).',
+    name: 'Naam',
+    model: 'Model',
+    key: 'Sleutel',
+    status: 'Status',
+    battery: 'Batterij',
+    online: 'Online',
+    offline: 'Offline',
+    keyPrefix: 'begint met {prefix}',
+    new: {
+      title: 'Robot toekennen',
+      name: 'Naam van de robot',
+      model: 'Model',
+      modelPlaceholder: 'Kies een model',
+      temperature: 'Temperatuur van het eten',
+      temperatureHint: 'Alleen voor robots die eten vervoeren.',
+      submit: 'Robot aanmaken en toekennen',
+      error: 'De robot kon niet aangemaakt worden.',
+    },
+    kinds: { FOOD: 'Eten', PARCEL: 'Pakketten' },
+    temperatures: { WARM: 'Warm', COLD: 'Koud', NEUTRAL: 'Neutraal' },
+  },
+  apiKey: {
+    title: 'API-sleutel van {name}',
+    warning:
+      'Kopieer deze sleutel nu. Hij wordt maar één keer getoond: daarna bewaart het platform enkel een hash en kan niemand hem nog terugvinden.',
+    copy: 'Kopiëren',
+    copied: 'Gekopieerd',
+    done: 'Ik heb de sleutel bewaard',
+  },
+}
+
+export type Messages = typeof nl
