@@ -1,0 +1,29 @@
+name: bot
+description: "Delivery robot: the robot simulator (the phone is the robot)"
+publish_to: 'none'
+
+version: 1.0.0+1
+
+environment:
+  sdk: ^3.13.4
+
+dependencies:
+  flutter:
+    sdk: flutter
+  flutter_localizations:
+    sdk: flutter
+  http: ^1.6.0
+  intl: ^0.20.3
+  lucide_icons_flutter: ^3.1.21
+  sensors_plus: ^7.1.0
+  shared_preferences: ^2.5.6
+
+dev_dependencies:
+  flutter_test:
+    sdk: flutter
+  flutter_lints: ^6.0.0
+
+flutter:
+  uses-material-design: true
+  # NL/EN from lib/l10n/app_*.arb (see l10n.yaml)
+  generate: true

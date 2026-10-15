@@ -1,0 +1,112 @@
+{
+  "@@locale": "nl",
+  "appTitle": "Delivery robot",
+  "language": "Taal",
+  "connectTitle": "Deze gsm wordt een bezorgrobot",
+  "connectIntro": "Leg de gsm plat neer, met het scherm naar boven: dat is de robot. Kantelen, schudden en optillen worden incidenten op het platform.",
+  "connectTitleDesktop": "Deze computer speelt een bezorgrobot",
+  "connectIntroDesktop": "Een computer heeft geen bewegingssensoren: de scenarioknoppen spelen kantelen, schudden en optillen na. Op een gsm wordt de gsm zelf de robot.",
+  "modeDemo": "Demo",
+  "modeDemoHint": "Zonder platform: de app speelt zelf de API na, met een rit rond de Howest-campus.",
+  "modeApi": "Platform",
+  "apiUrl": "GraphQL-endpoint van de API",
+  "apiKey": "API-key van de robot",
+  "apiKeyHint": "Die krijg je van de platform-admin als hij de robot aanmaakt.",
+  "robotName": "Naam van de robot",
+  "robotNameRequired": "Geef de robot een naam.",
+  "apiUrlInvalid": "Vul een volledig adres in, bv. http://localhost:3000/graphql.",
+  "apiKeyRequired": "Vul de API-key van de robot in.",
+  "start": "Start de robot",
+  "stopRobot": "Robot stoppen",
+  "statusLabel": "{status, select, available{Beschikbaar} toPickup{Onderweg naar de zaak} loading{Wacht tot de zaak laadt} onRoute{Onderweg naar de klant} atDropoff{Bij de klant} returning{Terug naar het station} charging{Aan het opladen} stuck{Vastgelopen} defect{Defect} alarm{Alarm} offline{Offline} manualOverride{Overgenomen door de technieker} other{{status}}}",
+  "@statusLabel": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "whatNow": "Wat nu?",
+  "unlockByCustomer": "De klant opent het vak",
+  "statusHint": "{status, select, available{Wacht op een bestelling. In de demo start je hieronder een rit.} toPickup{De robot rijdt naar de zaak. Met 'Aangekomen' sla je het rijden over.} loading{De zaak legt de bestelling in het vak. Druk daarna op de knop.} onRoute{De robot rijdt naar de klant.} atDropoff{De klant opent het vak in de app. Daarna gaat het deksel dicht.} returning{De robot rijdt terug naar het station.} stuck{Er is een probleem. Een technieker lost het op: druk op Hersteld.} defect{Er is een probleem. Een technieker lost het op: druk op Hersteld.} alarm{Er is een probleem. Een technieker lost het op: druk op Hersteld.} manualOverride{Er is een probleem. Een technieker lost het op: druk op Hersteld.} other{}}",
+  "@statusHint": {
+    "placeholders": { "status": { "type": "String" } }
+  },
+  "battery": "Batterij {percent}%",
+  "@battery": {
+    "placeholders": { "percent": { "type": "int" } }
+  },
+  "remaining": "Nog {metres} m",
+  "@remaining": {
+    "placeholders": { "metres": { "type": "int" } }
+  },
+  "noTrip": "Geen rit. De robot wacht op een bestelling.",
+  "compartments": "Vak",
+  "compartmentTitle": "Vak {number}",
+  "@compartmentTitle": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "temperature": "{type, select, warm{Warm} cold{Koud} neutral{Neutraal} other{{type}}}",
+  "@temperature": {
+    "placeholders": { "type": { "type": "String" } }
+  },
+  "locked": "Op slot",
+  "unlocked": "Ontgrendeld",
+  "lidOpen": "Deksel open",
+  "filled": "Gevuld",
+  "empty": "Leeg",
+  "markLoaded": "Geladen: deksel dicht en vertrekken",
+  "closeLid": "Deksel dicht",
+  "scenarios": "Scenario's",
+  "scenarioArrived": "Aangekomen",
+  "scenarioTilted": "Gekanteld",
+  "scenarioStuck": "Vastgelopen",
+  "scenarioLifted": "Opgetild (diefstal)",
+  "scenarioPackageTaken": "Pakketje genomen",
+  "recover": "Hersteld",
+  "weather": "Weer",
+  "weatherMild": "Zacht",
+  "weatherCold": "Koud",
+  "weatherFrost": "Vorst",
+  "kindFood": "Voedingsrobot",
+  "kindParcel": "Pakketrobot",
+  "gps": "GPS",
+  "gpsOff": "Echt",
+  "gpsNoise": "Ruis",
+  "gpsRandom": "Willekeurig",
+  "pinLabel": "Pincode van de klant",
+  "pinOpen": "Open het vak",
+  "pinWrong": "Foute pincode, of te veel pogingen.",
+  "hintPin": "De klant tikt zijn pincode hieronder in om het vak te openen.",
+  "addRobot": "Robot toevoegen",
+  "addRobotTitle": "Nog een robot",
+  "demoKind": "Soort robot",
+  "demoKindFood": "Voeding",
+  "demoKindParcelSmall": "Pakket klein",
+  "demoKindParcelLarge": "Pakket groot",
+  "demoPin": "Openen met pincode (1234)",
+  "cancel": "Annuleren",
+  "add": "Toevoegen",
+  "compartmentSize": "{width} × {height} × {depth} mm",
+  "@compartmentSize": {
+    "placeholders": { "width": { "type": "int" }, "height": { "type": "int" }, "depth": { "type": "int" } }
+  },
+  "timeFactor": "Tijd",
+  "sensors": "Sensoren van de gsm gebruiken",
+  "sensorsHint": "Kantelen en schudden worden echte incidenten.",
+  "sensorsUnavailable": "Dit toestel heeft geen bewegingssensoren.",
+  "demoPanel": "Demo: speel het platform",
+  "sendUnlock": "Open vak {number}",
+  "@sendUnlock": {
+    "placeholders": { "number": { "type": "int" } }
+  },
+  "sendStop": "Stop",
+  "sendReturn": "Terugsturen",
+  "sendBeep": "Piep",
+  "newTrip": "Nieuwe rit",
+  "logTitle": "Logboek",
+  "logEntry": "{kind, select, tripReceived{Nieuwe rit ontvangen} arrivedPickup{Aangekomen bij de zaak} arrivedDropoff{Aangekomen bij de klant} loaded{Geladen in vak {detail}} delivered{Geleverd} command{Commando: {detail}} event{Gemeld: {detail}} recovered{Hersteld, de robot gaat verder} returnedHome{Terug in het station} apiError{Geen verbinding met het platform} apiRestored{Verbinding hersteld} pinAccepted{Pincode aanvaard} pinRejected{Foute pincode} other{{kind}}}",
+  "@logEntry": {
+    "placeholders": {
+      "kind": { "type": "String" },
+      "detail": { "type": "String" }
+    }
+  },
+  "apiErrorBanner": "Geen verbinding met het platform. De robot blijft het proberen."
+}

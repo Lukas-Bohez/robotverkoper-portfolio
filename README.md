@@ -4,8 +4,10 @@ Alles wat Lukas Bohez zelfstandig bouwt en bezit, samen in één map. Deze map d
 
 | Map | Wat |
 | --- | --- |
-| [`seller-pwa/`](seller-pwa/) | De PWA voor de verkopers van de robots (nieuw) |
+| [`seller-pwa/`](seller-pwa/) | De PWA voor de verkopers van de robots: bedrijven en robots beheren |
+| [`simulator/`](simulator/) | De robotsimulator in Flutter: de gsm is de robot |
+| [`demo-launcher/`](demo-launcher/) | `Delivery Robot Demo.exe`: start de hele demo met één klik (bouw hem met `demo-launcher/build.ps1`) |
 
-De simulator (`apps/simulator`) en de demo-launcher (`apps/demo-launcher`) zijn ook van Lukas. Ze verhuizen naar deze map zodra de CI en de scripts van Maciej mee verwijzen; dat vraagt een review van hem, zie `docs/`.
+Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](../docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.
 
-Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md) en in de git-geschiedenis (`git log --follow`, `git blame`). Die geschiedenis blijft intact: ze is het bewijs.
+De code van Lukas in de gedeelde API en PWA (inloggen, bedrijven, personeel, rollen, het klantenmandje en Mijn bestellingen) staat nog in `../packages/`; zie [`../docs/flow-ownership-lukas.json`](../docs/flow-ownership-lukas.json).
