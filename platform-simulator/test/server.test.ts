@@ -68,7 +68,7 @@ describe('platform simulator', () => {
     assert.equal(badEmail.json.code, 'invalid_email')
   })
 
-  test('registers a robot, shows its key once and reports live state', async () => {
+  test('registers a robot, shows its key once, and it is offline until it reports itself', async () => {
     const company = DEMO_COMPANIES[0]!
     const food = await call('POST', '/robots', {
       companyId: company.id,
@@ -82,12 +82,12 @@ describe('platform simulator', () => {
 
     const live = await call('GET', `/robots/live?ids=${food.json.id},unknown`)
     assert.equal(live.json.length, 1)
-    assert.equal(live.json[0].online, true)
-    assert.ok(live.json[0].battery >= 15 && live.json[0].battery <= 100)
+    assert.deepEqual(live.json[0], { id: food.json.id, online: false, battery: null })
 
-    await call('POST', `/robots/${food.json.id}/telemetry`, { online: false, battery: 12 })
+    // By hand (a demo): the robot is online with this battery until it reports itself
+    await call('POST', `/robots/${food.json.id}/telemetry`, { online: true, battery: 80 })
     const after = await call('GET', `/robots/live?ids=${food.json.id}`)
-    assert.deepEqual(after.json[0], { id: food.json.id, online: false, battery: 12 })
+    assert.deepEqual(after.json[0], { id: food.json.id, online: true, battery: 80 })
   })
 
   test('food robots need a temperature, parcel robots refuse one', async () => {

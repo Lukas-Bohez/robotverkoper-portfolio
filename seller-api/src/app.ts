@@ -18,6 +18,10 @@ interface Context {
   body: Record<string, unknown>
   email: string
   role: SellerRole | null
+  /** The request comes from this very computer */
+  loopback: boolean
+  /** The secret a simulator proves itself with while it waits for a key */
+  pairingSecret: string
 }
 
 type Result = { status: number; body: unknown }
@@ -121,6 +125,39 @@ export function createSellerApi(options: AppOptions): Server {
       handler: async (c) => created(await service.replaceRobot(c.email, c.params[0]!, c.body)),
     },
 
+    // The simulator (a device, not a person) announces itself, waits, and collects the key once
+    {
+      method: 'POST',
+      pattern: /^\/pairings$/,
+      needs: 'public',
+      handler: (c) => created(service.createPairing(c.body, c.loopback)),
+    },
+    {
+      method: 'GET',
+      pattern: /^\/pairings\/([^/]+)$/,
+      needs: 'public',
+      handler: (c) => ok(service.collectPairing(c.params[0]!, c.pairingSecret)),
+    },
+    {
+      method: 'DELETE',
+      pattern: /^\/pairings\/([^/]+)$/,
+      needs: 'public',
+      handler: (c) => {
+        service.cancelPairing(c.params[0]!, c.pairingSecret)
+        return none()
+      },
+    },
+    { method: 'GET', pattern: /^\/pairings$/, needs: 'robots:create', handler: () => ok({ items: service.waitingPairings() }) },
+    {
+      method: 'POST',
+      pattern: /^\/pairings\/([^/]+)\/deliver$/,
+      needs: 'robots:create',
+      handler: (c) => {
+        service.deliverToSimulator(c.email, c.params[0]!, c.body)
+        return none()
+      },
+    },
+
     { method: 'GET', pattern: /^\/accounts$/, needs: 'accounts:manage', handler: () => ok({ items: service.accounts() }) },
     {
       method: 'POST',
@@ -145,9 +182,22 @@ export function createSellerApi(options: AppOptions): Server {
     },
   ]
 
+  /** The simulator may run in a browser on any address: its calls carry a secret instead of a login */
+  function isDeviceCall(req: IncomingMessage, path: string): boolean {
+    const method = req.method === 'OPTIONS' ? String(req.headers['access-control-request-method'] ?? '') : req.method
+    return (method === 'POST' && path === '/pairings') || (['GET', 'DELETE'].includes(method ?? '') && /^\/pairings\/[^/]+$/.test(path))
+  }
+
   function cors(req: IncomingMessage, res: ServerResponse): void {
     const origin = req.headers.origin
     res.setHeader('vary', 'Origin')
+    const path = (req.url ?? '').split('?')[0]!.replace(/\/+$/, '')
+    if (isDeviceCall(req, path)) {
+      res.setHeader('access-control-allow-origin', '*')
+      res.setHeader('access-control-allow-methods', 'GET, POST, DELETE, OPTIONS')
+      res.setHeader('access-control-allow-headers', 'content-type, x-pairing-secret')
+      return
+    }
     if (origin && options.corsOrigins.includes(origin)) {
       res.setHeader('access-control-allow-origin', origin)
       res.setHeader('access-control-allow-methods', 'GET, POST, DELETE, OPTIONS')
@@ -192,7 +242,17 @@ export function createSellerApi(options: AppOptions): Server {
         }
       }
       const body = req.method === 'POST' ? await readJson(req) : {}
-      const result = await route.handler({ params: match.slice(1).map(decodeURIComponent), query: url.searchParams, body, email, role })
+      const secret = req.headers['x-pairing-secret']
+      const remote = req.socket.remoteAddress ?? ''
+      const result = await route.handler({
+        params: match.slice(1).map(decodeURIComponent),
+        query: url.searchParams,
+        body,
+        email,
+        role,
+        loopback: remote === '127.0.0.1' || remote === '::1' || remote === '::ffff:127.0.0.1',
+        pairingSecret: typeof secret === 'string' ? secret : '',
+      })
       if (result.status === 204) {
         res.writeHead(204)
         res.end()

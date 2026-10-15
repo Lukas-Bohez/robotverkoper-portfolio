@@ -2,6 +2,7 @@ import { createServer, type IncomingMessage, type Server, type ServerResponse } 
 import { createHash, randomBytes, randomUUID, timingSafeEqual } from 'node:crypto'
 import { HttpError, readJson, sendJson, text } from './http.ts'
 import { isPermission, PERMISSIONS } from './permissions.ts'
+import { handleRobotGraphql } from './robot-api.ts'
 
 export interface Company {
   id: string
@@ -30,8 +31,14 @@ export interface Robot {
   name: string
   temperatureType: TemperatureType | null
   apiKeyPrefix: string
+  /** SHA-256 of the key: how the robot is recognised when it talks to /graphql */
+  keyHash: string
+  /** What was last reported (or set by hand, see `pinned`) */
   online: boolean
-  battery: number
+  battery: number | null
+  lastSeenAt: string | null
+  /** Set by hand (a demo of "the robot goes offline") until the robot reports itself again */
+  pinned: boolean
   retired: boolean
   createdAt: string
 }
@@ -66,16 +73,16 @@ const RESERVED = new Set(['www', 'api', 'app', 'admin', 'platform', 'localhost',
 const SUBDOMAIN = /^[a-z0-9](?:[a-z0-9-]{0,28}[a-z0-9])?$/
 const EMAIL = /^[^\s@]+@[^\s@]+\.[^\s@]+$/
 const KEY_PREFIX_LENGTH = 11
+/** A robot that reported less than this long ago is online */
+export const ONLINE_WINDOW_MS = 20_000
+
+export function hashKey(apiKey: string): string {
+  return createHash('sha256').update(apiKey, 'utf8').digest('hex')
+}
 
 /** Same shape as the keys of the real platform: `rb_` + 32 random bytes (base64url) */
 function generateApiKey(): string {
   return `rb_${randomBytes(32).toString('base64url')}`
-}
-
-/** A stable pretend battery level per robot, so a demo does not jump around */
-function pretendBattery(id: string): number {
-  const first = createHash('sha1').update(id).digest()[0] ?? 0
-  return 15 + Math.round((first / 255) * 85)
 }
 
 function sameToken(presented: string, expected: string): boolean {
@@ -204,12 +211,14 @@ export class PlatformState {
       name,
       temperatureType: temperature as TemperatureType | null,
       apiKeyPrefix: apiKey.slice(0, KEY_PREFIX_LENGTH),
-      online: true,
-      battery: 0,
+      keyHash: hashKey(apiKey),
+      online: false,
+      battery: null,
+      lastSeenAt: null,
+      pinned: false,
       retired: false,
       createdAt: this.now().toISOString(),
     }
-    robot.battery = pretendBattery(robot.id)
     this.robots.set(robot.id, robot)
     return { robot, apiKey }
   }
@@ -233,6 +242,7 @@ export class PlatformState {
     const robot = this.robot(id)
     if (robot.retired) throw new HttpError(409, 'robot_retired', 'This robot is retired')
     if (typeof input.online === 'boolean') robot.online = input.online
+    robot.pinned = true
     if (input.battery !== undefined) {
       const battery = Number(input.battery)
       if (!Number.isFinite(battery) || battery < 0 || battery > 100) {
@@ -254,14 +264,44 @@ export class PlatformState {
   restore(snapshot: Snapshot): void {
     for (const company of snapshot.companies) this.companies.set(company.id, company)
     for (const role of snapshot.roles) this.roles.set(role.id, role)
-    for (const robot of snapshot.robots) this.robots.set(robot.id, robot)
+    for (const robot of snapshot.robots) {
+      this.robots.set(robot.id, { ...robot, keyHash: robot.keyHash ?? '', lastSeenAt: robot.lastSeenAt ?? null, pinned: robot.pinned ?? false })
+    }
   }
 
-  live(ids: string[]): { id: string; online: boolean; battery: number }[] {
+  /** The robot behind an API key (a retired robot has no working key) */
+  robotByKey(apiKey: string): Robot | undefined {
+    if (!apiKey) return undefined
+    const hash = hashKey(apiKey)
+    for (const robot of this.robots.values()) {
+      if (!robot.retired && sameToken(hash, robot.keyHash)) return robot
+    }
+    return undefined
+  }
+
+  /** What the robot itself says: it is online and has this battery */
+  report(robot: Robot, battery: number): void {
+    robot.lastSeenAt = this.now().toISOString()
+    robot.online = true
+    robot.pinned = false
+    robot.battery = Math.min(100, Math.max(0, Math.round(battery)))
+  }
+
+  /** A robot that reported itself is online while it keeps reporting; otherwise what was set */
+  private liveOf(robot: Robot): { online: boolean; battery: number | null } {
+    if (robot.retired) return { online: false, battery: robot.battery }
+    if (robot.lastSeenAt !== null && !robot.pinned) {
+      const age = this.now().getTime() - new Date(robot.lastSeenAt).getTime()
+      return { online: age <= ONLINE_WINDOW_MS, battery: robot.battery }
+    }
+    return { online: robot.online, battery: robot.battery }
+  }
+
+  live(ids: string[]): { id: string; online: boolean; battery: number | null }[] {
     return ids
       .map((id) => this.robots.get(id))
       .filter((robot): robot is Robot => robot !== undefined)
-      .map((robot) => ({ id: robot.id, online: robot.online && !robot.retired, battery: robot.battery }))
+      .map((robot) => ({ id: robot.id, ...this.liveOf(robot) }))
   }
 }
 
@@ -327,10 +367,31 @@ export function createPlatformSimulator(options: SimulatorOptions): { server: Se
     },
   ]
 
+  /** The robot side: the robot app sends its API key in `x-api-key` (and may run in a browser, so CORS is open) */
+  async function handleGraphql(req: IncomingMessage, res: ServerResponse): Promise<void> {
+    res.setHeader('access-control-allow-origin', '*')
+    res.setHeader('access-control-allow-headers', 'content-type, x-api-key')
+    res.setHeader('access-control-allow-methods', 'POST, OPTIONS')
+    if (req.method === 'OPTIONS') {
+      res.writeHead(204)
+      res.end()
+      return
+    }
+    if (req.method !== 'POST') throw new HttpError(405, 'method_not_allowed', 'POST a GraphQL document here')
+    const key = req.headers['x-api-key']
+    const body = await readJson(req)
+    // Like a GraphQL server: errors travel in a 200 answer
+    sendJson(res, 200, handleRobotGraphql(state, typeof key === 'string' ? key : '', body))
+  }
+
   async function handle(req: IncomingMessage, res: ServerResponse): Promise<void> {
     const url = new URL(req.url ?? '/', 'http://localhost')
     if (req.method === 'GET' && url.pathname === '/health') {
       sendJson(res, 200, { status: 'ok', service: 'platform-simulator' })
+      return
+    }
+    if (url.pathname === '/graphql') {
+      await handleGraphql(req, res)
       return
     }
     const header = req.headers.authorization ?? ''

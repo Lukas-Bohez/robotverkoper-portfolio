@@ -16,7 +16,10 @@ const store = new SellerStore(openDatabase(config.dbPath))
 seedModels(store)
 
 const gateway = new HttpPlatformGateway({ baseUrl: config.platformUrl, token: config.platformToken })
-const service = new SellerService(store, gateway, { sellerAdminEmails: config.sellerAdminEmails })
+const service = new SellerService(store, gateway, {
+  sellerAdminEmails: config.sellerAdminEmails,
+  robotApiUrl: config.robotApiUrl,
+})
 
 const verifier: TokenVerifier =
   config.authMode === 'dev'
@@ -31,7 +34,7 @@ const server = createSellerApi({ service, verifier, corsOrigins: config.corsOrig
 server.listen(config.port, '127.0.0.1', () => {
   console.log(`Seller API on http://127.0.0.1:${config.port}`)
   console.log(`  database: ${config.dbPath}`)
-  console.log(`  platform: ${config.platformUrl}`)
+  console.log(`  platform: ${config.platformUrl} (robots connect to ${config.robotApiUrl})`)
   console.log(`  login:    ${config.authMode === 'dev' ? 'DEV tokens (local demo only)' : `Firebase project ${config.firebaseProjectId}`}`)
   console.log(`  admins:   ${config.sellerAdminEmails.join(', ') || '(none: add them in SELLER_ADMIN_EMAILS)'}`)
 })

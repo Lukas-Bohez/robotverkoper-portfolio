@@ -49,6 +49,11 @@ export interface PlatformGateway {
   registerRobot(input: RobotRegistration): Promise<RegisteredRobot>
   retireRobot(robotId: string): Promise<void>
   robotsLive(ids: string[]): Promise<RobotLive[]>
+  /**
+   * Only for a platform that is played by a simulator: make a robot look online with a battery, until the
+   * robot reports itself. A real platform does not have this (and the demo seed then skips it).
+   */
+  simulateTelemetry?(robotId: string, state: { online: boolean; battery: number }): Promise<void>
 }
 
 /** The platform could not be reached: the seller side then shows what it knew last */
@@ -131,6 +136,10 @@ export class HttpPlatformGateway implements PlatformGateway {
 
   async retireRobot(robotId: string): Promise<void> {
     await this.call('POST', `/robots/${encodeURIComponent(robotId)}/retire`, {})
+  }
+
+  async simulateTelemetry(robotId: string, state: { online: boolean; battery: number }): Promise<void> {
+    await this.call('POST', `/robots/${encodeURIComponent(robotId)}/telemetry`, state)
   }
 
   async robotsLive(ids: string[]): Promise<RobotLive[]> {

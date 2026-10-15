@@ -27,6 +27,7 @@ export class FakePlatform implements PlatformGateway {
   robots = new Map<string, { registration: RobotRegistration; retired: boolean; online: boolean; battery: number }>()
   keys: string[] = []
   down = false
+  simulated = new Map<string, { online: boolean; battery: number }>()
   lastCreateCompany: unknown = null
 
   private check(): void {
@@ -90,6 +91,13 @@ export class FakePlatform implements PlatformGateway {
     return Promise.resolve()
   }
 
+  simulateTelemetry(robotId: string, state: { online: boolean; battery: number }): Promise<void> {
+    this.simulated.set(robotId, state)
+    const robot = this.robots.get(robotId)
+    if (robot) Object.assign(robot, state)
+    return Promise.resolve()
+  }
+
   robotsLive(ids: string[]): Promise<RobotLive[]> {
     this.check()
     return Promise.resolve(
@@ -116,7 +124,10 @@ export async function startApp(): Promise<TestApp> {
   const store = new SellerStore(openDatabase(':memory:'))
   seedModels(store)
   const platform = new FakePlatform()
-  const service = new SellerService(store, platform, { sellerAdminEmails: [ADMIN] })
+  const service = new SellerService(store, platform, {
+    sellerAdminEmails: [ADMIN],
+    robotApiUrl: 'http://platform.test/graphql',
+  })
   const server: Server = createSellerApi({
     service,
     verifier: new DevTokenVerifier(),

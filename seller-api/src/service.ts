@@ -7,6 +7,7 @@ import {
   type SellerPermission,
   type SellerRole,
 } from './permissions.ts'
+import { PairingBook, type WaitingPairing } from './pairings.ts'
 import { isPlatformUnavailable, type PlatformGateway, type PlatformRole, type RobotLive } from './platform.ts'
 import type { AccountRow, AuditRow, CompanyRow, DefectRow, RobotModel, RobotRow, SellerStore } from './store.ts'
 
@@ -50,11 +51,19 @@ export class SellerService {
   private readonly store: SellerStore
   private readonly gateway: PlatformGateway
   private readonly configuredAdmins: ReadonlySet<string>
+  private readonly robotApiUrl: string
+  private readonly pairings: PairingBook
 
-  constructor(store: SellerStore, gateway: PlatformGateway, options: { sellerAdminEmails: string[] }) {
+  constructor(
+    store: SellerStore,
+    gateway: PlatformGateway,
+    options: { sellerAdminEmails: string[]; robotApiUrl?: string; pairings?: PairingBook },
+  ) {
     this.store = store
     this.gateway = gateway
     this.configuredAdmins = new Set(options.sellerAdminEmails)
+    this.robotApiUrl = options.robotApiUrl ?? ''
+    this.pairings = options.pairings ?? new PairingBook()
   }
 
   // ---- who is who ----
@@ -328,6 +337,41 @@ export class SellerService {
       resolvedAt: row.resolvedAt,
       replacementRobotId: row.replacementRobotId,
     }
+  }
+
+  // ---- the key goes straight to the simulator ----
+
+  /** A simulator announces itself and waits for the key of a robot */
+  createPairing(body: Body, loopback: boolean): { id: string; secret: string; code: string } {
+    const device = text(body.device ?? 'Simulator', 'device', 1, 60)
+    return this.pairings.create(device, loopback)
+  }
+
+  collectPairing(id: string, secret: string) {
+    return this.pairings.collect(id, secret)
+  }
+
+  cancelPairing(id: string, secret: string): void {
+    this.pairings.cancel(id, secret)
+  }
+
+  waitingPairings(): WaitingPairing[] {
+    return this.pairings.waiting()
+  }
+
+  /**
+   * Gives the key of a robot to a waiting simulator. Only the key of a robot we know is accepted
+   * (its first characters must match what we stored), and nothing of it is written down here.
+   */
+  deliverToSimulator(actor: string, pairingId: string, body: Body): void {
+    const robot = this.store.robot(text(body.robotId, 'robotId', 1, 80))
+    const apiKey = text(body.apiKey, 'apiKey', 12, 200)
+    if (!robot || robot.retiredAt) throw new HttpError(404, 'robot_not_found', 'This robot does not exist')
+    if (apiKey.slice(0, robot.apiKeyPrefix.length) !== robot.apiKeyPrefix) {
+      throw new HttpError(400, 'key_mismatch', 'This key does not belong to this robot')
+    }
+    const pairing = this.pairings.deliver(pairingId, { apiKey, robotName: robot.name, platformUrl: this.robotApiUrl })
+    this.store.record(actor, 'robot.key-sent', robot.id, `${robot.name} → ${pairing.device} (${pairing.code}), key ${robot.apiKeyPrefix}…`)
   }
 
   // ---- our own staff ----

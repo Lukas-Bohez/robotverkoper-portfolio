@@ -9,6 +9,8 @@ export interface Config {
   sellerAdminEmails: string[]
   platformUrl: string
   platformToken: string
+  /** Where a robot connects (sent to the simulator together with the key) */
+  robotApiUrl: string
   corsOrigins: string[]
   seedDemo: boolean
   production: boolean
@@ -38,6 +40,8 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const seedDemo = env.SEED_DEMO === 'true'
   if (seedDemo && production) throw new Error('SEED_DEMO is for a demo, never for production')
 
+  const platformUrl = (env.PLATFORM_URL ?? 'http://127.0.0.1:4100').replace(/\/+$/, '')
+
   return {
     port: Number(env.PORT ?? 4200),
     dbPath: env.DB_PATH ?? 'data/seller.db',
@@ -45,8 +49,9 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
     firebaseProjectId,
     requireVerifiedEmail: env.REQUIRE_VERIFIED_EMAIL ? env.REQUIRE_VERIFIED_EMAIL === 'true' : production,
     sellerAdminEmails: list(env.SELLER_ADMIN_EMAILS).map((email) => email.toLowerCase()),
-    platformUrl: (env.PLATFORM_URL ?? 'http://127.0.0.1:4100').replace(/\/+$/, ''),
+    platformUrl,
     platformToken: env.PLATFORM_TOKEN ?? 'dev-platform-token',
+    robotApiUrl: env.ROBOT_API_URL?.trim() || `${platformUrl}/graphql`,
     corsOrigins: list(env.CORS_ORIGINS ?? 'http://localhost:5174,http://127.0.0.1:5174'),
     seedDemo,
     production,
