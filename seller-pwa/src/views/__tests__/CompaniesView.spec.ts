@@ -1,125 +1,85 @@
 import { beforeEach, describe, expect, it, vi } from 'vitest'
 import { flushPromises, mount } from '@vue/test-utils'
+import { piniaWith, routerAt, TECHNICIAN_PERMISSIONS } from '@/test/helpers'
 
-const mocks = vi.hoisted(() => ({ query: vi.fn(), mutate: vi.fn() }))
-vi.mock('@/lib/graphql', () => ({
-  graphql: { query: mocks.query, mutate: mocks.mutate },
-  apiErrorMessage: (_error: unknown, fallback: string) => fallback,
-}))
+const mocks = vi.hoisted(() => ({ get: vi.fn(), post: vi.fn(), delete: vi.fn() }))
+vi.mock('@/lib/api', () => ({ api: mocks, apiErrorMessage: (_e: unknown, fallback: string) => fallback }))
 
 const { i18n } = await import('@/i18n')
 const { default: CompaniesView } = await import('../CompaniesView.vue')
 
-// Nuxt UI components are imported by the build plugin, so tests render the real ones;
-// only the router link needs a stand-in (there is no router in these tests)
-const stubs = {
-  RouterLink: { props: ['to'], template: '<a v-bind="$attrs"><slot /></a>' },
-}
+const demo = { id: 't1', name: 'Demozaak', subdomain: 'demo', createdAt: '2026-09-23T10:00:00.000Z', robotCount: 3, openDefects: 1 }
+const gelato = { id: 't2', name: 'Gelato Bar', subdomain: 'gelato', createdAt: '2026-10-10T10:00:00.000Z', robotCount: 2, openDefects: 0 }
 
-const company = {
-  id: 't1',
-  name: 'Demozaak',
-  subdomain: 'demo',
-  createdAt: '2026-09-23T10:00:00.000Z',
-}
-
-function mountView() {
-  return mount(CompaniesView, { global: { plugins: [i18n], stubs } })
+async function mountView(pinia = piniaWith()) {
+  const router = await routerAt('/companies')
+  return mount(CompaniesView, { global: { plugins: [i18n, pinia, router] } })
 }
 
 describe('CompaniesView', () => {
   beforeEach(() => {
     i18n.global.locale.value = 'nl'
-    mocks.query.mockReset()
-    mocks.mutate.mockReset()
-    mocks.query.mockResolvedValue({ tenants: [company] })
-    mocks.mutate.mockResolvedValue({ createTenant: company })
+    mocks.get.mockReset()
+    mocks.get.mockResolvedValue({ items: [demo, gelato], source: 'platform' })
   })
 
-  it('lists the companies, without any staff or email address', async () => {
-    const wrapper = mountView()
+  it('lists the companies with their robots and defects, without any staff or email address', async () => {
+    const wrapper = await mountView()
     expect(wrapper.find('[data-testid="companies-loading"]').exists()).toBe(true)
     await flushPromises()
 
     const rows = wrapper.findAll('[data-testid="company-row"]')
-    expect(rows).toHaveLength(1)
+    expect(rows).toHaveLength(2)
     expect(rows[0]!.text()).toContain('Demozaak')
-    expect(rows[0]!.text()).toContain('demo')
+    expect(rows[0]!.find('[data-testid="company-robot-count"]').text()).toBe('3')
+    expect(rows[0]!.find('[data-testid="company-defects"]').text()).toBe('1 defect')
+    expect(rows[1]!.find('[data-testid="company-defects"]').text()).toBe('Geen')
     expect(wrapper.find('[data-testid="companies-table"]').text()).not.toContain('@')
+    expect(wrapper.find('[data-testid="companies-info"]').text()).toContain('geen personeel')
+    expect(mocks.get).toHaveBeenCalledWith('/companies')
+  })
+
+  it('has a card for every company too (the phone layout)', async () => {
+    const wrapper = await mountView()
+    await flushPromises()
+    const cards = wrapper.findAll('[data-testid="company-card"]')
+    expect(cards).toHaveLength(2)
+    expect(cards[0]!.text()).toContain('3 robots')
+  })
+
+  it('links every company to its robots', async () => {
+    const wrapper = await mountView()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="company-robots-link"]').attributes('href')).toBe('/companies/t1')
+  })
+
+  it('offers "new company" only to a role that may create companies', async () => {
+    let wrapper = await mountView()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="new-company"]').exists()).toBe(true)
+    wrapper = await mountView(piniaWith('technician', TECHNICIAN_PERMISSIONS))
+    await flushPromises()
+    expect(wrapper.find('[data-testid="new-company"]').exists()).toBe(false)
+  })
+
+  it('warns when it shows the last known list because the platform does not answer', async () => {
+    mocks.get.mockResolvedValue({ items: [demo], source: 'cache' })
+    const wrapper = await mountView()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="companies-cache"]').text()).toContain('laatst bekende')
   })
 
   it('says so when there are no companies', async () => {
-    mocks.query.mockResolvedValue({ tenants: [] })
-    const wrapper = mountView()
+    mocks.get.mockResolvedValue({ items: [] })
+    const wrapper = await mountView()
     await flushPromises()
     expect(wrapper.find('[data-testid="companies-empty"]').exists()).toBe(true)
   })
 
   it('shows an error when the companies cannot be loaded', async () => {
-    mocks.query.mockRejectedValue(new Error('offline'))
-    const wrapper = mountView()
+    mocks.get.mockRejectedValue(new Error('offline'))
+    const wrapper = await mountView()
     await flushPromises()
     expect(wrapper.find('[data-testid="companies-error"]').text()).toContain('niet geladen')
-  })
-
-  it('suggests the address from the name, until you type your own', async () => {
-    const wrapper = mountView()
-    await flushPromises()
-    const subdomain = () =>
-      (wrapper.find('[data-testid="company-subdomain"]').element as HTMLInputElement).value
-
-    await wrapper.find('[data-testid="company-name"]').setValue('Pizzeria Test')
-    expect(subdomain()).toBe('pizzeria-test')
-
-    await wrapper.find('[data-testid="company-subdomain"]').setValue('mijn-adres')
-    await wrapper.find('[data-testid="company-name"]').setValue('Iets anders')
-    expect(subdomain()).toBe('mijn-adres')
-  })
-
-  it('does not submit an invalid address', async () => {
-    const wrapper = mountView()
-    await flushPromises()
-    await wrapper.find('[data-testid="company-name"]').setValue('Pizzeria Test')
-    await wrapper.find('[data-testid="company-admin-email"]').setValue('chef@pizzeria.test')
-    await wrapper.find('[data-testid="company-subdomain"]').setValue('Geen Geldig Adres')
-
-    expect(wrapper.text()).toContain('Gebruik 2 tot 30 letters')
-    expect(
-      (wrapper.find('[data-testid="company-submit"]').element as HTMLButtonElement).disabled,
-    ).toBe(true)
-    await wrapper.find('form').trigger('submit')
-    expect(mocks.mutate).not.toHaveBeenCalled()
-  })
-
-  it('creates a company, tells it, and reloads the list', async () => {
-    const wrapper = mountView()
-    await flushPromises()
-    await wrapper.find('[data-testid="company-name"]').setValue('Pizzeria Test')
-    await wrapper.find('[data-testid="company-admin-email"]').setValue('  chef@pizzeria.test ')
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(mocks.mutate).toHaveBeenCalledTimes(1)
-    expect(mocks.mutate.mock.calls[0]![1]).toEqual({
-      input: { name: 'Pizzeria Test', subdomain: 'pizzeria-test', adminEmail: 'chef@pizzeria.test' },
-    })
-    expect(wrapper.find('[data-testid="company-created"]').text()).toContain('Pizzeria Test')
-    expect(mocks.query).toHaveBeenCalledTimes(2) // loaded again
-    expect((wrapper.find('[data-testid="company-name"]').element as HTMLInputElement).value).toBe('')
-  })
-
-  it('shows an error and keeps the form when the company cannot be created', async () => {
-    mocks.mutate.mockRejectedValue(new Error('taken'))
-    const wrapper = mountView()
-    await flushPromises()
-    await wrapper.find('[data-testid="company-name"]').setValue('Pizzeria Test')
-    await wrapper.find('[data-testid="company-admin-email"]').setValue('chef@pizzeria.test')
-    await wrapper.find('form').trigger('submit')
-    await flushPromises()
-
-    expect(wrapper.find('[data-testid="company-form-error"]').exists()).toBe(true)
-    expect(
-      (wrapper.find('[data-testid="company-name"]').element as HTMLInputElement).value,
-    ).toBe('Pizzeria Test')
   })
 })

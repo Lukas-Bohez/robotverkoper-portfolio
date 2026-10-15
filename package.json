@@ -1,0 +1,16 @@
+{
+  "name": "lukas",
+  "version": "0.0.0",
+  "private": true,
+  "description": "Het deel van Lukas: de verkopers-PWA, zijn eigen API met database, een simulator van het platform en de robotsimulator. Staat los van de workspaces van de rest van het project.",
+  "scripts": {
+    "setup": "node scripts/setup.mjs",
+    "dev": "node scripts/setup.mjs && node scripts/dev.mjs",
+    "start": "node scripts/dev.mjs",
+    "test": "npm test --prefix platform-simulator && npm test --prefix seller-api && npm run test:unit --prefix seller-pwa",
+    "type-check": "npm run type-check --prefix platform-simulator && npm run type-check --prefix seller-api && npm run type-check --prefix seller-pwa"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
+}

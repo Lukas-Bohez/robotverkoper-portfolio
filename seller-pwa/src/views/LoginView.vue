@@ -3,7 +3,7 @@ import { reactive, ref } from 'vue'
 import { useRoute, useRouter } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { safeRedirect } from '@/router/guard'
-import { loginErrorKey, useAuthStore } from '@/stores/auth'
+import { devLoginEnabled, loginErrorKey, useAuthStore } from '@/stores/auth'
 
 const route = useRoute()
 const router = useRouter()
@@ -29,10 +29,11 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-sm flex-col justify-center pt-8">
+  <div class="mx-auto flex max-w-md flex-col justify-center pt-8">
     <UCard>
       <template #header>
-        <h1 class="text-xl font-semibold">{{ t('login.title') }}</h1>
+        <h1 class="text-2xl font-semibold">{{ t('login.title') }}</h1>
+        <p class="mt-2 text-sm text-muted">{{ t('login.intro') }}</p>
       </template>
       <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
         <UFormField :label="t('login.email')" name="email">
@@ -55,6 +56,7 @@ async function onSubmit() {
             data-testid="login-password"
           />
         </UFormField>
+        <UAlert v-if="devLoginEnabled" color="warning" variant="subtle" :title="t('login.devNote')" data-testid="login-dev-note" />
         <UAlert v-if="error" color="error" variant="subtle" :title="error" data-testid="login-error" />
         <UButton type="submit" block :loading="loading" data-testid="login-submit">
           {{ t('login.submit') }}

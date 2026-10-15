@@ -13,8 +13,8 @@ const firebaseConfig = {
 const configured = Object.values(firebaseConfig).every(
   (value) => typeof value === 'string' && value.length > 0,
 )
-if (!configured) {
-  console.warn('Firebase is not configured: fill in VITE_FIREBASE_* in apps/seller-pwa/.env')
+if (!configured && import.meta.env.VITE_AUTH_MODE !== 'dev') {
+  console.warn('Firebase is not configured: fill in VITE_FIREBASE_* in Lukas/seller-pwa/.env')
 }
 
 /**

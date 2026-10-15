@@ -20,7 +20,7 @@ export default defineConfig({
       workbox: {
         // The app shell works offline; every route is the same page (the router decides)
         navigateFallback: '/index.html',
-        // GraphQL (the API) is never cached: companies and robots must be live
+        // The API (another origin) is never cached: companies and robots must be live
       },
     }),
   ],

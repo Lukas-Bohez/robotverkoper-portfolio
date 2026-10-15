@@ -1,25 +1,30 @@
 import { computed, shallowRef, watch } from 'vue'
 import { defineStore } from 'pinia'
-import { ME, type Me } from '@/graphql/operations'
-import { graphql } from '@/lib/graphql'
+import type { Me, Permission } from '@/api/types'
+import { api } from '@/lib/api'
 import { useAuthStore } from './auth'
 
 /**
- * Who you are on the platform. Only a platform admin may use this panel; the API
- * decides, this only keeps the screens away from what would fail anyway.
+ * Who you are at the robot seller: your role and what it allows. The API decides every call;
+ * this only keeps the screens (and the menu) away from what would fail anyway.
  */
 export const useMeStore = defineStore('me', () => {
   const me = shallowRef<Me | null>(null)
   let pending: Promise<void> | null = null
 
-  const isSeller = computed(() => me.value?.platformRole === 'PLATFORM_ADMIN')
+  /** Anyone with a role may use the panel; a role without more rights is the technician */
+  const isSeller = computed(() => me.value?.role != null)
+
+  function can(permission: Permission): boolean {
+    return me.value?.permissions.includes(permission) ?? false
+  }
 
   async function load(force = false): Promise<void> {
     if (me.value && !force) return
-    pending ??= graphql
-      .query<{ me: Me }>(ME)
+    pending ??= api
+      .get<Me>('/me')
       .then((data) => {
-        me.value = data.me
+        me.value = data
       })
       .finally(() => {
         pending = null
@@ -39,12 +44,10 @@ export const useMeStore = defineStore('me', () => {
     () => auth.user?.uid ?? null,
     (uid) => {
       if (uid === previousUid) return
-      const hadUser = previousUid !== null
       previousUid = uid
       reset()
-      if (hadUser) void graphql.reset().catch(() => undefined)
     },
   )
 
-  return { me, isSeller, load, reset }
+  return { me, isSeller, can, load, reset }
 })
