@@ -74,7 +74,6 @@ describe('platform simulator', () => {
       companyId: company.id,
       modelKind: 'FOOD',
       name: 'Demo Food Bot',
-      temperatureType: 'WARM',
     })
     assert.equal(food.status, 201)
     assert.match(food.json.apiKey, /^rb_[A-Za-z0-9_-]{43}$/)
@@ -90,17 +89,12 @@ describe('platform simulator', () => {
     assert.deepEqual(after.json[0], { id: food.json.id, online: true, battery: 80 })
   })
 
-  test('food robots need a temperature, parcel robots refuse one', async () => {
+  test('a food robot is an insulated one: no temperature to choose, and an unknown company is refused', async () => {
     const companyId = DEMO_COMPANIES[0]!.id
-    const missing = await call('POST', '/robots', { companyId, modelKind: 'FOOD', name: 'Zonder' })
-    assert.equal(missing.json.code, 'temperature_required')
-    const extra = await call('POST', '/robots', {
-      companyId,
-      modelKind: 'PARCEL',
-      name: 'Pakket',
-      temperatureType: 'COLD',
-    })
-    assert.equal(extra.json.code, 'temperature_not_allowed')
+    const food = await call('POST', '/robots', { companyId, modelKind: 'FOOD', name: 'Zonder temperatuur' })
+    assert.equal(food.status, 201)
+    const bad = await call('POST', '/robots', { companyId, modelKind: 'LUCHT', name: 'Raar' })
+    assert.equal(bad.status, 400)
     const unknown = await call('POST', '/robots', { companyId: 'nope', modelKind: 'PARCEL', name: 'Pakket' })
     assert.equal(unknown.status, 404)
   })

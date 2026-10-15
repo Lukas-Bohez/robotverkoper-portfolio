@@ -18,7 +18,6 @@ const robot = {
   companyId: 't1',
   name: 'Demo Food Bot',
   model: { id: 'model-food', name: 'Delivery Bot Eten', kind: 'FOOD' },
-  temperatureType: 'WARM',
   apiKeyPrefix: 'rb_demo1234',
   online: true,
   battery: 87.4,
@@ -101,34 +100,34 @@ describe('CompanyRobotsView', () => {
     expect(wrapper.find('[data-testid="robots-error"]').text()).toContain('niet geladen')
   })
 
-  it('asks for a temperature only for food robots, and sends none for a parcel robot', async () => {
+  it('offers no warm, cold or neutral to choose: the client wants one insulated kind of food robot', async () => {
     const wrapper = await mountView()
     await flushPromises()
     expect(wrapper.find('[data-testid="robot-temperature"]').exists()).toBe(false)
     await wrapper.find('[data-testid="robot-model"]').setValue('model-food')
-    expect(wrapper.find('[data-testid="robot-temperature"]').exists()).toBe(true)
-
-    await wrapper.find('[data-testid="robot-model"]').setValue('model-parcel')
     expect(wrapper.find('[data-testid="robot-temperature"]').exists()).toBe(false)
+    expect(wrapper.text()).toContain('Eten gaat altijd in een geïsoleerde robot')
+    const options = wrapper.findAll('option').map((option) => option.text())
+    expect(options.join(' ')).not.toMatch(/warm|koud|neutraal/i)
+
     await wrapper.find('[data-testid="robot-name"]').setValue('Pakketje')
+    await wrapper.find('[data-testid="robot-model"]').setValue('model-parcel')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
     expect(mocks.post).toHaveBeenCalledWith('/companies/t1/robots', { name: 'Pakketje', modelId: 'model-parcel' })
   })
 
-  it('creates a food robot with its temperature and shows the key once, ready for the simulator', async () => {
+  it('creates a food robot and shows the key once, ready for the simulator', async () => {
     const wrapper = await mountView()
     await flushPromises()
     await wrapper.find('[data-testid="robot-name"]').setValue('Food Robot 2')
     await wrapper.find('[data-testid="robot-model"]').setValue('model-food')
-    await wrapper.find('[data-testid="robot-temperature"]').setValue('COLD')
     await wrapper.find('form').trigger('submit')
     await flushPromises()
 
     expect(mocks.post).toHaveBeenCalledWith('/companies/t1/robots', {
       name: 'Food Robot 2',
       modelId: 'model-food',
-      temperatureType: 'COLD',
     })
     expect(wrapper.find('[data-testid="api-key-value"]').text()).toBe('robot-key-abc123')
 

@@ -29,7 +29,8 @@ function profile(state: PlatformState, robot: Robot): Record<string, unknown> {
     widthMm: size.widthMm,
     heightMm: size.heightMm,
     depthMm: size.depthMm,
-    temperatureType: robot.temperatureType,
+    // An insulated robot keeps the temperature of the order: there is no warm, cold or neutral type
+    temperatureType: null,
     unlockMethod: 'REMOTE',
   }
 }

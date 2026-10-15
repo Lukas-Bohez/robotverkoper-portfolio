@@ -42,7 +42,6 @@ async function newRobot(kind: 'FOOD' | 'PARCEL' = 'FOOD') {
     companyId: DEMO_COMPANIES[0]!.id,
     modelKind: kind,
     name: 'Robot Gelato 1',
-    ...(kind === 'FOOD' ? { temperatureType: 'COLD' } : {}),
   })
   return created.json as { id: string; apiKey: string }
 }
@@ -58,7 +57,7 @@ describe('the robot side (/graphql)', () => {
     assert.equal(wrong.json.errors[0].message, 'Invalid API key')
   })
 
-  test('tells the robot who it is: its name, company, kind and temperature', async () => {
+  test('tells the robot who it is: its name, company and kind (an insulated robot has no temperature type)', async () => {
     const robot = await newRobot('FOOD')
     const { json } = await robotCall(robot.apiKey, 'query MyRobot { myRobot { name companyName kind } }')
     assert.deepEqual(json.data.myRobot, {
@@ -69,7 +68,7 @@ describe('the robot side (/graphql)', () => {
       widthMm: 350,
       heightMm: 250,
       depthMm: 300,
-      temperatureType: 'COLD',
+      temperatureType: null,
       unlockMethod: 'REMOTE',
     })
   })

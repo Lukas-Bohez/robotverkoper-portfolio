@@ -30,7 +30,6 @@ const MIGRATIONS: string[] = [
     company_id TEXT NOT NULL,
     model_id TEXT NOT NULL REFERENCES robot_models (id),
     name TEXT NOT NULL,
-    temperature_type TEXT CHECK (temperature_type IN ('WARM', 'COLD', 'NEUTRAL')),
     api_key_prefix TEXT NOT NULL,
     created_by TEXT NOT NULL,
     created_at TEXT NOT NULL,

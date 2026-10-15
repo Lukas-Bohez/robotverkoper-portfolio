@@ -4,6 +4,8 @@ import { createPlatformSimulator, type Snapshot } from './server.ts'
 import { DEMO_COMPANIES } from './seed.ts'
 
 const port = Number(process.env.PORT ?? 4100)
+/** 127.0.0.1: only this computer. 0.0.0.0 lets a robot app on a phone reach it. */
+const host = process.env.BIND_HOST ?? '127.0.0.1'
 const token = process.env.PLATFORM_TOKEN ?? 'dev-platform-token'
 /** The state survives a restart, so the seller API and the simulator keep telling the same story */
 const stateFile = process.env.STATE_FILE ?? 'data/state.json'
@@ -39,8 +41,8 @@ const { server, state } = createPlatformSimulator({
 })
 if (!restored) save(state.snapshot())
 
-server.listen(port, '127.0.0.1', () => {
+server.listen(port, host, () => {
   console.log(
-    `Platform simulator on http://127.0.0.1:${port} (${state.companies.size} made-up companies, state in ${stateFile})`,
+    `Platform simulator on http://${host}:${port} (${state.companies.size} made-up companies, state in ${stateFile})`,
   )
 })

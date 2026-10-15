@@ -22,14 +22,12 @@ export interface Role {
 }
 
 export type ModelKind = 'FOOD' | 'PARCEL'
-export type TemperatureType = 'WARM' | 'COLD' | 'NEUTRAL'
 
 export interface Robot {
   id: string
   companyId: string
   modelKind: ModelKind
   name: string
-  temperatureType: TemperatureType | null
   apiKeyPrefix: string
   /** SHA-256 of the key: how the robot is recognised when it talks to /graphql */
   keyHash: string
@@ -195,21 +193,13 @@ export class PlatformState {
     if (modelKind !== 'FOOD' && modelKind !== 'PARCEL') {
       throw new HttpError(400, 'invalid_input', 'modelKind is FOOD or PARCEL')
     }
-    const temperature = input.temperatureType ?? null
-    if (modelKind === 'FOOD') {
-      if (temperature !== 'WARM' && temperature !== 'COLD' && temperature !== 'NEUTRAL') {
-        throw new HttpError(400, 'temperature_required', 'A food robot needs a temperature type')
-      }
-    } else if (temperature !== null) {
-      throw new HttpError(400, 'temperature_not_allowed', 'A parcel robot has no temperature type')
-    }
+    // One kind of food robot: insulated. There is no warm, cold or neutral to choose.
     const apiKey = generateApiKey()
     const robot: Robot = {
       id: randomUUID(),
       companyId: company.id,
       modelKind,
       name,
-      temperatureType: temperature as TemperatureType | null,
       apiKeyPrefix: apiKey.slice(0, KEY_PREFIX_LENGTH),
       keyHash: hashKey(apiKey),
       online: false,

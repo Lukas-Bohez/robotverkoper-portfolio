@@ -19,7 +19,6 @@ export interface RobotView {
   companyId: string
   name: string
   model: { id: string; name: string; kind: string } | null
-  temperatureType: string | null
   apiKeyPrefix: string
   online: boolean | null
   battery: number | null
@@ -166,7 +165,6 @@ export class SellerService {
       companyId: row.companyId,
       name: row.name,
       model: model ? { id: model.id, name: model.name, kind: model.kind } : null,
-      temperatureType: row.temperatureType,
       apiKeyPrefix: row.apiKeyPrefix,
       online: known?.online ?? null,
       battery: known?.battery ?? null,
@@ -182,9 +180,8 @@ export class SellerService {
     const name = text(body.name, 'name', 2, 120)
     const model = this.store.model(text(body.modelId, 'modelId', 1, 60))
     if (!model) throw new HttpError(404, 'model_not_found', 'This robot model does not exist')
-    const temperatureType = this.temperatureFor(model, body.temperatureType)
-
-    const registered = await this.gateway.registerRobot({ companyId, modelKind: model.kind, name, temperatureType })
+    // The client wants one kind of food robot: insulated, so no warm, cold or neutral to choose from
+    const registered = await this.gateway.registerRobot({ companyId, modelKind: model.kind, name })
     try {
       this.store.transaction(() => {
         this.store.insertRobot({
@@ -192,7 +189,6 @@ export class SellerService {
           companyId,
           modelId: model.id,
           name,
-          temperatureType,
           apiKeyPrefix: registered.apiKeyPrefix,
           createdBy: actor,
         })
@@ -205,19 +201,6 @@ export class SellerService {
     }
     const row = this.store.robot(registered.id)!
     return { robot: this.view(row, null, model, false), apiKey: registered.apiKey }
-  }
-
-  private temperatureFor(model: RobotModel, value: unknown): 'WARM' | 'COLD' | 'NEUTRAL' | null {
-    if (model.kind === 'PARCEL') {
-      if (value !== undefined && value !== null) {
-        throw new HttpError(400, 'temperature_not_allowed', 'A parcel robot has no temperature type')
-      }
-      return null
-    }
-    if (value === undefined || value === null) {
-      throw new HttpError(400, 'temperature_required', 'A food robot needs a temperature type')
-    }
-    return oneOf(value, 'temperatureType', ['WARM', 'COLD', 'NEUTRAL'] as const)
   }
 
   // ---- roles of a company (kept by the platform, set up by us when a company starts) ----
@@ -293,7 +276,6 @@ export class SellerService {
       companyId: old.companyId,
       modelKind: model.kind,
       name,
-      temperatureType: old.temperatureType,
     })
     this.store.transaction(() => {
       this.store.insertRobot({
@@ -301,7 +283,6 @@ export class SellerService {
         companyId: old.companyId,
         modelId: old.modelId,
         name,
-        temperatureType: old.temperatureType,
         apiKeyPrefix: registered.apiKeyPrefix,
         createdBy: actor,
       })

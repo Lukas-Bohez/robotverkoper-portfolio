@@ -87,7 +87,7 @@ describe('the key goes from the PWA to the simulator', () => {
 
   async function robot() {
     const created = await app.call('POST', '/companies/c-demo/robots', {
-      body: { name: 'Food Robot 2', modelId: 'model-food', temperatureType: 'COLD' },
+      body: { name: 'Food Robot 2', modelId: 'model-food' },
     })
     return created.json as { robot: { id: string }; apiKey: string }
   }

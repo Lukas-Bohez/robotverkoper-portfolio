@@ -5,7 +5,7 @@ import { useI18n } from 'vue-i18n'
 import ApiKeyDialog from '@/components/ApiKeyDialog.vue'
 import CompanyTabs from '@/components/CompanyTabs.vue'
 import ReportDefectDialog from '@/components/ReportDefectDialog.vue'
-import type { Company, List, Robot, RobotModel, Source, TemperatureType } from '@/api/types'
+import type { Company, List, Robot, RobotModel, Source } from '@/api/types'
 import { api, apiErrorMessage } from '@/lib/api'
 import { statusColor } from '@/lib/status'
 import { useMeStore } from '@/stores/me'
@@ -23,15 +23,12 @@ const loading = ref(true)
 const loadError = ref('')
 const notFound = ref(false)
 
-const TEMPERATURES: TemperatureType[] = ['WARM', 'COLD', 'NEUTRAL']
-const form = reactive({ name: '', modelId: '', temperatureType: 'WARM' as TemperatureType })
+const form = reactive({ name: '', modelId: '' })
 const saving = ref(false)
 const formError = ref('')
 const created = ref<{ robotId: string; robotName: string; apiKey: string } | null>(null)
 const reporting = ref<Robot | null>(null)
 
-const selectedModel = computed(() => models.value.find((model) => model.id === form.modelId))
-const needsTemperature = computed(() => selectedModel.value?.kind === 'FOOD')
 const canSubmit = computed(() => form.name.trim().length >= 2 && form.modelId !== '' && !saving.value)
 
 async function loadRobots() {
@@ -74,12 +71,7 @@ async function onSubmit() {
     const name = form.name.trim()
     const data = await api.post<{ robot: Robot; apiKey: string }>(
       `/companies/${encodeURIComponent(companyId.value)}/robots`,
-      {
-        name,
-        modelId: form.modelId,
-        // The API wants a temperature for food robots and refuses one for parcel robots
-        ...(needsTemperature.value ? { temperatureType: form.temperatureType } : {}),
-      },
+      { name, modelId: form.modelId },
     )
     created.value = { robotId: data.robot.id, robotName: data.robot.name, apiKey: data.apiKey }
     form.name = ''
@@ -190,7 +182,7 @@ onMounted(load)
               <UFormField :label="t('robots.new.name')" name="name">
                 <UInput v-model="form.name" required minlength="2" maxlength="120" class="w-full" data-testid="robot-name" />
               </UFormField>
-              <UFormField :label="t('robots.new.model')" name="model">
+              <UFormField :label="t('robots.new.model')" :hint="t('robots.new.modelHint')" name="model">
                 <select
                   v-model="form.modelId"
                   required
@@ -200,22 +192,6 @@ onMounted(load)
                   <option value="" disabled>{{ t('robots.new.modelPlaceholder') }}</option>
                   <option v-for="model in models" :key="model.id" :value="model.id">
                     {{ model.name }} ({{ t(`robots.kinds.${model.kind}`) }})
-                  </option>
-                </select>
-              </UFormField>
-              <UFormField
-                v-if="needsTemperature"
-                :label="t('robots.new.temperature')"
-                :hint="t('robots.new.temperatureHint')"
-                name="temperature"
-              >
-                <select
-                  v-model="form.temperatureType"
-                  class="w-full rounded-md border border-default bg-default px-3 py-2 text-sm"
-                  data-testid="robot-temperature"
-                >
-                  <option v-for="value in TEMPERATURES" :key="value" :value="value">
-                    {{ t(`robots.temperatures.${value}`) }}
                   </option>
                 </select>
               </UFormField>

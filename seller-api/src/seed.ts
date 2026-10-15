@@ -8,7 +8,7 @@ export const ROBOT_MODELS: RobotModel[] = [
     id: 'model-food',
     name: 'Delivery Bot Eten',
     kind: 'FOOD',
-    description: 'Bezorgrobot met verwarmd of gekoeld vak voor warme en koude gerechten',
+    description: 'Geïsoleerde bezorgrobot voor eten: houdt de temperatuur van de bestelling vast. Eén type, geen warm, koud of neutraal',
   },
   {
     id: 'model-parcel',
@@ -26,17 +26,16 @@ const DEMO_ROBOTS: {
   company: string
   name: string
   model: string
-  temperature?: 'WARM' | 'COLD' | 'NEUTRAL'
   /** How the simulated platform shows it, until a real robot app reports itself */
   online: boolean
   battery: number
 }[] = [
-  { company: 'demo', name: 'Demo Food Bot', model: 'model-food', temperature: 'WARM', online: true, battery: 87 },
-  { company: 'demo', name: 'Food Robot 2', model: 'model-food', temperature: 'COLD', online: true, battery: 100 },
+  { company: 'demo', name: 'Demo Food Bot', model: 'model-food', online: true, battery: 87 },
+  { company: 'demo', name: 'Food Robot 2', model: 'model-food', online: true, battery: 100 },
   { company: 'demo', name: 'Demo Parcel Bot', model: 'model-parcel', online: true, battery: 12 },
-  { company: 'gelato', name: 'Robot Gelato 1', model: 'model-food', temperature: 'COLD', online: true, battery: 64 },
-  { company: 'gelato', name: 'Robot Gelato 2', model: 'model-food', temperature: 'COLD', online: false, battery: 41 },
-  { company: 'pizzeria-test', name: 'Pizza Bot 1', model: 'model-food', temperature: 'WARM', online: false, battery: 100 },
+  { company: 'gelato', name: 'Robot Gelato 1', model: 'model-food', online: true, battery: 64 },
+  { company: 'gelato', name: 'Robot Gelato 2', model: 'model-food', online: false, battery: 41 },
+  { company: 'pizzeria-test', name: 'Pizza Bot 1', model: 'model-food', online: false, battery: 100 },
 ]
 
 /**
@@ -62,7 +61,6 @@ export async function seedDemo(
     const { robot } = await service.createRobot(actor, company.id, {
       name: demo.name,
       modelId: demo.model,
-      ...(demo.temperature ? { temperatureType: demo.temperature } : {}),
     })
     if (demo.name === 'Demo Parcel Bot') parcelRobotId = robot.id
     await gateway.simulateTelemetry?.(robot.id, { online: demo.online, battery: demo.battery })

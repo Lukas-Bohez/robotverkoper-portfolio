@@ -13,7 +13,7 @@ const TECH = 'technieker@fabrikant.example'
 
 async function makeRobot(companyId = 'c-demo', body: Record<string, unknown> = {}) {
   return app.call('POST', `/companies/${companyId}/robots`, {
-    body: { name: 'Demo Food Bot', modelId: 'model-food', temperatureType: 'WARM', ...body },
+    body: { name: 'Demo Food Bot', modelId: 'model-food', ...body },
   })
 }
 
@@ -140,11 +140,13 @@ describe('robots', () => {
     assert.ok(everything.includes(apiKey.slice(0, 11)), 'but the start of it, to recognise the robot')
   })
 
-  test('a food robot needs a temperature, a parcel robot refuses one', async () => {
-    assert.equal((await makeRobot('c-demo', { temperatureType: undefined })).json.code, 'temperature_required')
-    assert.equal((await makeRobot('c-demo', { modelId: 'model-parcel', temperatureType: 'COLD' })).json.code, 'temperature_not_allowed')
-    assert.equal((await makeRobot('c-demo', { temperatureType: 'LUKEWARM' })).status, 400)
-    assert.equal((await makeRobot('c-demo', { modelId: 'model-parcel', temperatureType: undefined })).status, 201)
+  test('a food robot is always an insulated one: there is no temperature to choose, and one that is sent is ignored', async () => {
+    const created = await makeRobot('c-demo', { temperatureType: 'COLD' })
+    assert.equal(created.status, 201)
+    assert.equal('temperatureType' in created.json.robot, false)
+    const registered = [...app.platform.robots.values()][0]!.registration
+    assert.deepEqual(registered, { companyId: 'c-demo', modelKind: 'FOOD', name: 'Demo Food Bot' })
+    assert.equal((await makeRobot('c-demo', { modelId: 'model-parcel' })).status, 201)
   })
 
   test('refuses an unknown model, a short name and an unknown company', async () => {
@@ -214,7 +216,7 @@ describe('defects and replacing robots', () => {
     assert.equal(replaced.json.defect.replacementRobotId, replaced.json.robot.id)
     assert.equal(replaced.json.robot.name, 'Demo Food Bot (vervanger)')
     assert.equal(app.platform.robots.get(old.id)!.retired, true, 'the platform stopped the old key')
-    assert.equal(app.platform.robots.get(replaced.json.robot.id)!.registration.temperatureType, 'WARM')
+    assert.equal(app.platform.robots.get(replaced.json.robot.id)!.registration.modelKind, 'FOOD', 'same kind as the old robot')
 
     const robots = (await app.call('GET', '/companies/c-demo/robots')).json.items
     assert.deepEqual(robots.map((r: any) => r.id), [replaced.json.robot.id], 'the old robot is gone from the list')

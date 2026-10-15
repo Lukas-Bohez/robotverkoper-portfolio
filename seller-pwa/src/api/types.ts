@@ -14,7 +14,6 @@ export type Permission =
   | 'audit:read'
 
 export type RobotKind = 'FOOD' | 'PARCEL'
-export type TemperatureType = 'WARM' | 'COLD' | 'NEUTRAL'
 export type RobotStatus = 'online' | 'offline' | 'defect' | 'unknown'
 export type DefectSeverity = 'low' | 'medium' | 'high'
 
@@ -48,7 +47,6 @@ export interface Robot {
   companyId: string
   name: string
   model: { id: string; name: string; kind: RobotKind } | null
-  temperatureType: TemperatureType | null
   apiKeyPrefix: string
   online: boolean | null
   battery: number | null

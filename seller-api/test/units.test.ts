@@ -75,6 +75,8 @@ describe('config', () => {
   test('has safe defaults for a local demo', () => {
     const config = loadConfig({ AUTH_MODE: 'dev' })
     assert.equal(config.port, 4200)
+    assert.equal(config.host, '127.0.0.1', 'only this computer, unless asked otherwise')
+    assert.equal(loadConfig({ AUTH_MODE: 'dev', BIND_HOST: '0.0.0.0' }).host, '0.0.0.0')
     assert.equal(config.requireVerifiedEmail, false)
     assert.deepEqual(config.corsOrigins, ['http://localhost:5174', 'http://127.0.0.1:5174'])
   })
@@ -110,12 +112,9 @@ describe('database', () => {
     }
   })
 
-  test('refuses a robot with an unknown temperature or a defect with an unknown severity', () => {
+  test('refuses a defect with an unknown severity', () => {
     const db = openDatabase(':memory:')
     db.prepare("INSERT INTO robot_models VALUES ('m', 'M', 'FOOD', '')").run()
-    assert.throws(() =>
-      db.prepare("INSERT INTO robots (id, company_id, model_id, name, temperature_type, api_key_prefix, created_by, created_at) VALUES ('r','c','m','n','LAUW','p','x','nu')").run(),
-    )
     db.prepare("INSERT INTO robots (id, company_id, model_id, name, api_key_prefix, created_by, created_at) VALUES ('r','c','m','n','p','x','nu')").run()
     assert.throws(() =>
       db.prepare("INSERT INTO defects (id, robot_id, summary, severity, status, reported_by, created_at) VALUES ('d','r','s','enorm','open','x','nu')").run(),

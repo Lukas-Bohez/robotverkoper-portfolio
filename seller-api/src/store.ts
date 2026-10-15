@@ -1,5 +1,5 @@
 import type { DatabaseSync, SQLInputValue } from 'node:sqlite'
-import type { ModelKind, PlatformCompany, TemperatureType } from './platform.ts'
+import type { ModelKind, PlatformCompany } from './platform.ts'
 import type { SellerRole } from './permissions.ts'
 
 export type DefectSeverity = 'low' | 'medium' | 'high'
@@ -26,7 +26,6 @@ export interface RobotRow {
   companyId: string
   modelId: string
   name: string
-  temperatureType: TemperatureType | null
   apiKeyPrefix: string
   createdBy: string
   createdAt: string
@@ -74,7 +73,6 @@ function robot(row: Raw): RobotRow {
     companyId: row.company_id as string,
     modelId: row.model_id as string,
     name: row.name as string,
-    temperatureType: row.temperature_type as TemperatureType | null,
     apiKeyPrefix: row.api_key_prefix as string,
     createdBy: row.created_by as string,
     createdAt: row.created_at as string,
@@ -221,18 +219,16 @@ export class SellerStore {
     companyId: string
     modelId: string
     name: string
-    temperatureType: TemperatureType | null
     apiKeyPrefix: string
     createdBy: string
   }): void {
     this.run(
-      `INSERT INTO robots (id, company_id, model_id, name, temperature_type, api_key_prefix, created_by, created_at)
-       VALUES (?, ?, ?, ?, ?, ?, ?, ?)`,
+      `INSERT INTO robots (id, company_id, model_id, name, api_key_prefix, created_by, created_at)
+       VALUES (?, ?, ?, ?, ?, ?, ?)`,
       input.id,
       input.companyId,
       input.modelId,
       input.name,
-      input.temperatureType,
       input.apiKeyPrefix,
       input.createdBy,
       this.now().toISOString(),

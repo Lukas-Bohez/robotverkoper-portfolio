@@ -31,8 +31,8 @@ const verifier: TokenVerifier =
 
 const server = createSellerApi({ service, verifier, corsOrigins: config.corsOrigins, log: (line) => console.log(line) })
 
-server.listen(config.port, '127.0.0.1', () => {
-  console.log(`Seller API on http://127.0.0.1:${config.port}`)
+server.listen(config.port, config.host, () => {
+  console.log(`Seller API on http://${config.host}:${config.port}`)
   console.log(`  database: ${config.dbPath}`)
   console.log(`  platform: ${config.platformUrl} (robots connect to ${config.robotApiUrl})`)
   console.log(`  login:    ${config.authMode === 'dev' ? 'DEV tokens (local demo only)' : `Firebase project ${config.firebaseProjectId}`}`)

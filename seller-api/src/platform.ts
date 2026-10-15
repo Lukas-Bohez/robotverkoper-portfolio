@@ -5,7 +5,6 @@ import { HttpError } from './http.ts'
  * This is the whole contract (see Lukas/CONTRACT.md): nothing else of the platform is visible here.
  */
 export type ModelKind = 'FOOD' | 'PARCEL'
-export type TemperatureType = 'WARM' | 'COLD' | 'NEUTRAL'
 
 export interface PlatformCompany {
   id: string
@@ -25,7 +24,6 @@ export interface RobotRegistration {
   companyId: string
   modelKind: ModelKind
   name: string
-  temperatureType: TemperatureType | null
 }
 
 export interface RegisteredRobot {

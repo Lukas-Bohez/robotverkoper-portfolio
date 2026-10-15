@@ -1,6 +1,8 @@
 export type AuthMode = 'firebase' | 'dev'
 
 export interface Config {
+  /** 127.0.0.1: only this computer. 0.0.0.0 lets a phone on the network reach the API (for the simulator on a phone). */
+  host: string
   port: number
   dbPath: string
   authMode: AuthMode
@@ -43,6 +45,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env): Config {
   const platformUrl = (env.PLATFORM_URL ?? 'http://127.0.0.1:4100').replace(/\/+$/, '')
 
   return {
+    host: env.BIND_HOST?.trim() || '127.0.0.1',
     port: Number(env.PORT ?? 4200),
     dbPath: env.DB_PATH ?? 'data/seller.db',
     authMode,
