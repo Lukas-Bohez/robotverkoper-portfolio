@@ -25,9 +25,15 @@ for (const part of PARTS) {
   }
 
   console.log(`[setup] ${part}: packages installeren…`)
-  const result = spawnSync('npm', ['ci', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit', shell: true })
+  // `npm ci` follows the lockfile exactly. A lockfile made by another npm version can miss an optional
+  // package; then `npm install` fills the gap instead of stopping the whole demo.
+  let result = spawnSync('npm', ['ci', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit', shell: true })
   if (result.status !== 0) {
-    console.error(`[setup] ${part}: installeren mislukt (npm ci, code ${result.status})`)
+    console.log(`[setup] ${part}: npm ci lukte niet, nu npm install`)
+    result = spawnSync('npm', ['install', '--no-audit', '--no-fund'], { cwd: dir, stdio: 'inherit', shell: true })
+  }
+  if (result.status !== 0) {
+    console.error(`[setup] ${part}: installeren mislukt (code ${result.status})`)
     process.exit(result.status ?? 1)
   }
   writeFileSync(marker, hash)

@@ -172,7 +172,7 @@ export const nl = {
     remove: 'Verwijderen',
     removed: 'De rol {name} is verwijderd.',
     removeError: 'De rol kon niet verwijderd worden.',
-    preview: 'Bekijken als deze rol',
+    preview: 'Bekijken als rol',
     firstAdmin: {
       title: 'Eerste beheerder',
       text: 'De eerste beheerder is uitgenodigd toen het bedrijf werd aangemaakt. Daarna beheert het bedrijf zelf personeel en rollen.',
@@ -282,6 +282,7 @@ export const nl = {
         company_role_created: 'Rol aangemaakt',
         company_role_deleted: 'Rol verwijderd',
         robot_created: 'Robot toegekend',
+        robot_key_sent: 'Sleutel naar simulator gestuurd',
         robot_replaced: 'Robot vervangen',
         defect_reported: 'Defect gemeld',
         defect_closed: 'Defect gesloten',

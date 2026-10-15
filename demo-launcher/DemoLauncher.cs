@@ -1,6 +1,8 @@
-// Delivery robot: demo launcher.
-// One exe that starts the whole demo: Docker + MongoDB, the API, the platform (PWA)
-// and the Windows version of the robot simulator. Closing the window stops everything.
+// Delivery robot: demo launcher of Lukas.
+// One exe that starts Lukas's part and nothing of anyone else's: the platform simulator (it plays the
+// platform of the companies with made-up data), the seller API with its own database, the PWA of the
+// seller and the Windows version of the robot simulator. No Docker, no MongoDB, no other PWA.
+// Closing the window stops everything.
 //
 // Build: powershell -ExecutionPolicy Bypass -File build.ps1   (C# 5, the compiler that ships with Windows)
 using System;
@@ -11,14 +13,13 @@ using System.IO;
 using System.Linq;
 using System.Net;
 using System.Reflection;
-using System.Security.Cryptography;
 using System.Text;
 using System.Threading;
 using System.Windows.Forms;
 
 [assembly: AssemblyTitle("Delivery robot demo")]
 [assembly: AssemblyProduct("Delivery robot demo")]
-[assembly: AssemblyVersion("1.0.0.0")]
+[assembly: AssemblyVersion("2.0.0.0")]
 
 public class Step
 {
@@ -31,16 +32,20 @@ public class Step
 
 public class LauncherForm : Form
 {
-    const string ApiUrl = "http://localhost:3000/graphql";
-    const string PlatformUrl = "http://localhost:5173/";
-    const string TenantUrl = "http://demo.localhost:5173/";
+    const int SimulatorPort = 4100; // the platform simulator
+    const int ApiPort = 4200;       // the seller API
+    const int WebPort = 5174;       // the PWA of the seller
+    const string SimulatorHealth = "http://127.0.0.1:4100/health";
+    const string ApiHealth = "http://127.0.0.1:4200/health";
+    const string WebUrl = "http://localhost:5174/";
 
     readonly string root;
+    readonly string lukas;
     readonly Dictionary<string, Step> steps = new Dictionary<string, Step>();
     readonly TextBox log = new TextBox();
     readonly List<Process> started = new List<Process>();
     readonly object gate = new object();
-    Process stack;       // npm run dev
+    Process stack;       // npm start in Lukas/: platform simulator, seller API and seller PWA
     Process simulator;   // bot.exe
     volatile bool closing;
     bool opened;
@@ -57,6 +62,7 @@ public class LauncherForm : Form
     public LauncherForm(string root)
     {
         this.root = root;
+        this.lukas = Path.Combine(root, "Lukas");
         Text = "Delivery robot: demo";
         ClientSize = new Size(520, 420);
         MinimumSize = new Size(540, 460);
@@ -81,9 +87,9 @@ public class LauncherForm : Form
         Controls.Add(bar);
 
         string[][] defs = {
-            new[] { "database", "Database" },
-            new[] { "api", "Server" },
-            new[] { "platform", "Website" },
+            new[] { "platform", "Platform-simulator" },
+            new[] { "api", "Verkopers-API en database" },
+            new[] { "web", "Website van de verkoper" },
             new[] { "simulator", "Robot-app" },
         };
         int y = 116;
@@ -105,10 +111,12 @@ public class LauncherForm : Form
         openButton.FlatStyle = FlatStyle.Flat;
         openButton.FlatAppearance.BorderSize = 0;
         openButton.Enabled = false;
-        openButton.Click += delegate { Open(PlatformUrl); };
+        openButton.Click += delegate { Open(WebUrl); };
         Controls.Add(openButton);
 
-        accounts.Text = "Inloggen met  docent@howest.be  en wachtwoord  P@ssword123";
+        accounts.Text = FirebaseConfigured()
+            ? "Inloggen met  docent@howest.be  en je eigen wachtwoord"
+            : "Lokale demo: inloggen met  docent@howest.be  (elk wachtwoord)";
         accounts.ForeColor = Color.DimGray;
         accounts.Left = 26; accounts.Top = y + 70; accounts.Width = 468; accounts.Height = 22;
         Controls.Add(accounts);
@@ -147,6 +155,25 @@ public class LauncherForm : Form
         FormClosing += OnClosing;
     }
 
+    /// With the Firebase values of Lukas/seller-pwa/.env the real logins are used, else local demo logins
+    bool FirebaseConfigured()
+    {
+        try
+        {
+            string env = Path.Combine(lukas, "seller-pwa", ".env");
+            if (!File.Exists(env)) return false;
+            bool project = false, key = false;
+            foreach (string line in File.ReadAllLines(env))
+            {
+                string t = line.Trim();
+                if (t.StartsWith("VITE_FIREBASE_projectId=") && t.Length > "VITE_FIREBASE_projectId=".Length) project = true;
+                if (t.StartsWith("VITE_FIREBASE_apiKey=") && t.Length > "VITE_FIREBASE_apiKey=".Length) key = true;
+            }
+            return project && key;
+        }
+        catch { return false; }
+    }
+
     void ToggleDetails()
     {
         showDetails = !showDetails;
@@ -183,7 +210,7 @@ public class LauncherForm : Form
             headline.Text = "Even geduld…";
             headline.ForeColor = Color.Black;
         }
-        openButton.Enabled = steps["platform"].Done;
+        openButton.Enabled = steps["web"].Done;
         openButton.BackColor = openButton.Enabled ? Color.FromArgb(22, 163, 74) : Color.FromArgb(225, 228, 232);
         openButton.ForeColor = openButton.Enabled ? Color.White : Color.Gray;
     }
@@ -201,7 +228,6 @@ public class LauncherForm : Form
 
     void Log(string line)
     {
-        if (line.Contains("Database is ready")) { dbHealthy = true; SetStep("database", "ok", ""); }
         try { lock (gate) File.AppendAllText(LogFile, DateTime.Now.ToString("HH:mm:ss") + "  " + line + "\r\n", Encoding.UTF8); } catch { }
         Ui(delegate
         {
@@ -212,14 +238,9 @@ public class LauncherForm : Form
 
     void SetStep(string key, string state, string detail)
     {
-        // Docker and `npm run dev` are one row for the user: the database
-        if (key == "docker" || key == "stack") key = "database";
-        string row = key;
         Ui(delegate
         {
-            Step step = steps[row];
-            // MongoDB's own "healthy" line completes the database row, not the start of the stack
-            if (row == "database" && state == "ok" && !dbHealthy) state = "busy";
+            Step step = steps[key];
             step.Done = state == "ok";
             step.Failed = state == "fail";
             step.Icon.Text = state == "ok" ? "✔" : state == "busy" ? "◔" : state == "fail" ? "✖" : "○";
@@ -228,8 +249,6 @@ public class LauncherForm : Form
             UpdateHeadline();
         });
     }
-
-    bool dbHealthy;
 
     static void Open(string url)
     {
@@ -242,26 +261,24 @@ public class LauncherForm : Form
     {
         try
         {
-            if (!File.Exists(Path.Combine(root, "packages", "api", ".env")) || !File.Exists(Path.Combine(root, "packages", "platform", ".env")))
+            if (!NodeReady()) return;
+            if (!File.Exists(Path.Combine(lukas, "package.json")))
             {
-                Log("Er ontbreekt een .env-bestand. Kopieer packages/api/.env.example naar packages/api/.env en");
-                Log("packages/platform/.env.example naar packages/platform/.env, en vul de Firebase-waarden in.");
-                Log("(Vraag ze aan Lukas, zie README.md.) Daarna start je deze demo opnieuw.");
-                SetStep("stack", "fail", ".env ontbreekt");
+                Log("De map Lukas ontbreekt of is onvolledig: " + lukas);
+                SetStep("api", "fail", "map Lukas ontbreekt");
                 return;
             }
 
             StopLeftovers();
             StartSimulatorInBackground();
-            if (!EnsurePortFree(3000, "api") || !EnsurePortFree(5173, "platform")) return;
+            if (!EnsurePortFree(SimulatorPort, "platform") || !EnsurePortFree(ApiPort, "api") || !EnsurePortFree(WebPort, "web")) return;
             if (!EnsureDependencies()) return;
-            if (!EnsureDocker()) return;
             StartStack();
 
-            WaitUrl("api", ApiUrl, true, 240, "http://localhost:3000");
-            WaitUrl("platform", PlatformUrl, false, 240, "http://localhost:5173");
-            SetStep("stack", "ok", "draait");
-            if (!opened) { opened = true; Open(PlatformUrl); }
+            WaitUrl("platform", SimulatorHealth, 120, "http://localhost:4100");
+            WaitUrl("api", ApiHealth, 120, "http://localhost:4200");
+            WaitUrl("web", WebUrl, 240, "http://localhost:5174");
+            if (!opened && steps["web"].Done) { opened = true; Open(WebUrl); }
         }
         catch (Exception e)
         {
@@ -269,46 +286,22 @@ public class LauncherForm : Form
         }
     }
 
-    // Docker Desktop must run before MongoDB can start
-    bool EnsureDocker()
+    /// Node.js 22.18 or newer (the servers run TypeScript directly and use the built-in SQLite)
+    bool NodeReady()
     {
-        SetStep("docker", "busy", "Docker controleren…");
-        if (DockerReady()) { SetStep("docker", "ok", "draait"); return true; }
-
-        string exe = Path.Combine(Environment.GetFolderPath(Environment.SpecialFolder.ProgramFiles), @"Docker\Docker\Docker Desktop.exe");
-        if (!File.Exists(exe))
+        string version = RunQuiet("node", "--version").Trim();
+        if (version.StartsWith("v"))
         {
-            SetStep("docker", "fail", "niet geïnstalleerd");
-            Log("Docker Desktop is niet geïnstalleerd. Installeer het via https://www.docker.com/products/docker-desktop/");
-            return false;
-        }
-        Log("Docker Desktop starten (dit duurt tot een minuut)…");
-        SetStep("docker", "busy", "Docker starten…");
-        try { Process.Start(new ProcessStartInfo(exe) { UseShellExecute = true }); } catch { }
-        for (int i = 0; i < 90 && !closing; i++)
-        {
-            Thread.Sleep(2000);
-            if (DockerReady()) { SetStep("docker", "ok", "draait"); return true; }
-        }
-        SetStep("docker", "fail", "start niet gelukt");
-        Log("Docker Desktop startte niet op tijd. Open het zelf en start de demo opnieuw.");
-        return false;
-    }
-
-    static bool DockerReady()
-    {
-        try
-        {
-            var info = new ProcessStartInfo("docker", "info") { UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            using (Process p = Process.Start(info))
+            string[] parts = version.Substring(1).Split('.');
+            int major, minor;
+            if (parts.Length >= 2 && int.TryParse(parts[0], out major) && int.TryParse(parts[1], out minor))
             {
-                p.StandardOutput.ReadToEnd();
-                p.StandardError.ReadToEnd();
-                if (!p.WaitForExit(15000)) { try { p.Kill(); } catch { } return false; }
-                return p.ExitCode == 0;
+                if ((major == 22 && minor >= 18) || (major == 24 && minor >= 12) || major > 24) { Log("Node.js " + version); return true; }
             }
         }
-        catch { return false; }
+        SetStep("api", "fail", version.Length == 0 ? "Node.js is niet geïnstalleerd" : "Node.js " + version + " is te oud");
+        Log("Deze demo vraagt Node.js 22.18, of 24.12 en nieuwer. Installeer het via https://nodejs.org en start opnieuw.");
+        return false;
     }
 
     // ---------- before the start: leftovers, ports, packages ----------
@@ -325,8 +318,7 @@ public class LauncherForm : Form
         }
     }
 
-    // A demo that was not stopped holds ports 3000 and 5173, and its `npm run dev` would later
-    // run `docker compose down` on the database we are about to start
+    // A demo that was not stopped still holds the ports
     void StopLeftovers()
     {
         string[] lines;
@@ -350,7 +342,7 @@ public class LauncherForm : Form
         try { File.Delete(PidFile); } catch { }
     }
 
-    // Another program on 3000 or 5173 would answer instead of the demo (Vite then quietly moves to 5174)
+    // Another program on one of our ports would answer instead of the demo
     bool EnsurePortFree(int port, string key)
     {
         int pid = 0;
@@ -361,9 +353,9 @@ public class LauncherForm : Form
             Thread.Sleep(500);
         }
         SetStep(key, "fail", "poort " + port + " is bezet");
-        Log("Poort " + port + " is al in gebruik door " + PortOwner(pid, port) + ".");
-        Log("De demo heeft poort 3000 (server) en 5173 (website) nodig. Stop dat programma (draait er nog een");
-        Log("`npm run dev` in een terminal? Ctrl+C) en start de demo opnieuw.");
+        Log("Poort " + port + " is al in gebruik door " + PortOwner(pid) + ".");
+        Log("Deze demo heeft de poorten 4100 (platform-simulator), 4200 (verkopers-API) en 5174 (website) nodig.");
+        Log("Stop dat programma (draait er nog een `npm run dev` in een terminal? Ctrl+C) en start de demo opnieuw.");
         return false;
     }
 
@@ -383,10 +375,8 @@ public class LauncherForm : Form
         return 0;
     }
 
-    static string PortOwner(int pid, int port)
+    static string PortOwner(int pid)
     {
-        string container = RunQuiet("docker", "ps --filter publish=" + port + " --format {{.Names}}").Trim();
-        if (container.Length > 0) return "de Docker-container '" + container.Split('\n')[0].Trim() + "'";
         try { return Process.GetProcessById(pid).ProcessName + ".exe (PID " + pid + ")"; }
         catch { return "PID " + pid; }
     }
@@ -407,42 +397,13 @@ public class LauncherForm : Form
         catch { return ""; }
     }
 
-    // `npm ci` on a fresh clone, `npm install` when package-lock.json changed since the last start
-    // (e.g. after a git pull): otherwise the API stops on a missing package
+    // `npm run setup` in Lukas/: installs the packages of the three Node parts when they are missing
+    // or when a package-lock.json changed since the last start
     bool EnsureDependencies()
     {
-        string modules = Path.Combine(root, "node_modules");
-        string marker = Path.Combine(modules, ".demo-launcher-lock");
-        string lockHash;
-        using (var sha = SHA256.Create())
-            lockHash = BitConverter.ToString(sha.ComputeHash(File.ReadAllBytes(Path.Combine(root, "package-lock.json")))).Replace("-", "");
-
-        // npm writes its hidden lockfile last: a failed install can leave an empty node_modules
-        bool installed = File.Exists(Path.Combine(modules, ".package-lock.json"));
-        if (installed)
-        {
-            string seen = File.Exists(marker) ? File.ReadAllText(marker).Trim() : null;
-            if (seen == lockHash) return true;
-            // Installed before the launcher kept track: trust it
-            if (seen == null) { try { File.WriteAllText(marker, lockHash); } catch { } return true; }
-        }
-
-        // npm workspaces link node_modules/api and node_modules/platform: exFAT and FAT (e.g. an external
-        // drive) have no links, and the failed install would roll back and delete node_modules
-        string format = DriveFormat(root);
-        if (format != null && format != "NTFS" && format != "ReFS")
-        {
-            SetStep("api", "fail", "npm werkt niet op een " + format + "-schijf");
-            Log("De repo staat op een " + format + "-schijf (" + Path.GetPathRoot(root) + "). Daar kan npm de pakketten niet installeren:");
-            Log("de workspaces hebben links nodig, en die kent " + format + " niet. Clone de repo op een NTFS-schijf");
-            Log("(bv. C:\\2school\\26-ratty-raccoon), bouw daar de launcher (Lukas\\demo-launcher\\build.ps1) en start opnieuw.");
-            return false;
-        }
-
-        string command = installed ? "npm install --no-save --no-audit --no-fund" : "npm ci --no-audit --no-fund";
-        SetStep("api", "busy", "pakketten installeren (enkele minuten)…");
-        Log("> " + command);
-        Process install = Spawn("cmd.exe", "/c " + command, root, "npm");
+        SetStep("api", "busy", "pakketten controleren (de eerste keer enkele minuten)…");
+        Log("> npm run setup  (Lukas)");
+        Process install = Spawn("cmd.exe", "/c npm run setup", lukas, "npm");
         install.WaitForExit();
         if (closing) return false;
         if (install.ExitCode != 0)
@@ -450,22 +411,17 @@ public class LauncherForm : Form
             SetStep("api", "fail", "installeren mislukt, zie het logboek");
             return false;
         }
-        try { File.WriteAllText(marker, lockHash); } catch { }
         return true;
     }
 
-    static string DriveFormat(string path)
-    {
-        try { return new DriveInfo(Path.GetPathRoot(path)).DriveFormat; }
-        catch { return null; } // e.g. a network share: let npm try
-    }
-
-    // `npm run dev` of the repo: MongoDB (Docker), migrations, the API and the platform
+    // `npm start` in Lukas/: the platform simulator, the seller API (own SQLite database) and the seller PWA
     void StartStack()
     {
-        SetStep("stack", "busy", "starten…");
-        Log("> npm run dev");
-        stack = Spawn("cmd.exe", "/c npm run dev", root, "dev");
+        SetStep("platform", "busy", "starten…");
+        SetStep("api", "busy", "starten…");
+        SetStep("web", "busy", "starten…");
+        Log("> npm start  (Lukas)");
+        stack = Spawn("cmd.exe", "/c npm start", lukas, "dev");
     }
 
     Process Spawn(string file, string args, string dir, string tag)
@@ -488,7 +444,7 @@ public class LauncherForm : Form
             if (closing) return;
             int code = SafeExit(p);
             Log("[" + tag + "] " + (code == 0 && tag != "dev" ? "klaar." : "is gestopt (code " + code + ")."));
-            if (tag == "dev") SetStep("stack", "fail", "gestopt, zie het logboek");
+            if (tag == "dev") SetStep("api", "fail", "gestopt, zie het logboek");
         };
         p.Start();
         p.BeginOutputReadLine();
@@ -504,32 +460,25 @@ public class LauncherForm : Form
         return System.Text.RegularExpressions.Regex.Replace(text, "\u001b\\[[0-9;]*[A-Za-z]", "");
     }
 
-    void WaitUrl(string key, string url, bool post, int seconds, string label)
+    void WaitUrl(string key, string url, int seconds, string label)
     {
         SetStep(key, "busy", "wachten…");
         DateTime end = DateTime.UtcNow.AddSeconds(seconds);
         while (DateTime.UtcNow < end && !closing)
         {
             if (stack != null && stack.HasExited) { SetStep(key, "fail", "de demo is gestopt"); return; }
-            if (Reachable(url, post)) { SetStep(key, "ok", label); return; }
+            if (Reachable(url)) { SetStep(key, "ok", label); return; }
             Thread.Sleep(1500);
         }
         if (!closing) SetStep(key, "fail", "reageert niet");
     }
 
-    static bool Reachable(string url, bool post)
+    static bool Reachable(string url)
     {
         try
         {
             var req = (HttpWebRequest)WebRequest.Create(url);
             req.Timeout = 3000;
-            if (post)
-            {
-                req.Method = "POST";
-                req.ContentType = "application/json";
-                byte[] body = Encoding.UTF8.GetBytes("{\"query\":\"{ health { status } }\"}");
-                req.GetRequestStream().Write(body, 0, body.Length);
-            }
             using (var res = (HttpWebResponse)req.GetResponse()) return (int)res.StatusCode < 500;
         }
         catch (WebException e)
@@ -566,7 +515,7 @@ public class LauncherForm : Form
         try
         {
             if (!File.Exists(SimulatorExe())) return true;
-            // bot.exe is only a stub that is not rewritten by a rebuild: the app itself is datapp.so
+            // bot.exe is only a stub that is not rewritten by a rebuild: the app itself is datapp.so
             string app = Path.Combine(Path.GetDirectoryName(SimulatorExe()), "data", "app.so");
             DateTime built = File.GetLastWriteTimeUtc(File.Exists(app) ? app : SimulatorExe());
             string lib = Path.Combine(root, "Lukas", "simulator", "lib");
@@ -625,8 +574,8 @@ public class LauncherForm : Form
                 }
                 simulator = Process.Start(new ProcessStartInfo(SimulatorExe()) { UseShellExecute = false, WorkingDirectory = Path.GetDirectoryName(SimulatorExe()) });
                 Remember(simulator);
-                SetStep("simulator", "ok", "draait (demomodus)");
-                Log("Simulator gestart in demomodus: kies Demo en tik op 'Start de robot'.");
+                SetStep("simulator", "ok", "draait");
+                Log("Simulator gestart: kies Platform. De sleutel van een nieuwe robot uit de website verschijnt daar vanzelf.");
             }
             catch (Exception e) { SetStep("simulator", "fail", e.Message); }
         });
@@ -658,17 +607,6 @@ public class LauncherForm : Form
         lock (gate) all = new List<Process>(started);
         foreach (Process p in all) KillTree(p);
         try { File.Delete(PidFile); } catch { }
-        // `npm run dev` normally stops MongoDB on Ctrl+C; we killed it, so do it ourselves
-        try
-        {
-            var down = new ProcessStartInfo("cmd.exe", "/c npm run dev:down") { WorkingDirectory = root, UseShellExecute = false, CreateNoWindow = true, RedirectStandardOutput = true, RedirectStandardError = true };
-            using (Process p = Process.Start(down))
-            {
-                p.StandardOutput.ReadToEnd();
-                p.WaitForExit(30000);
-            }
-        }
-        catch { }
     }
 
     static void KillTree(Process p)
@@ -709,6 +647,7 @@ public static class Program
         }
     }
 
+    // The repo root: the folder that holds Lukas\simulator
     static string FindRoot(string[] args)
     {
         var starts = new List<string>();
@@ -722,7 +661,7 @@ public static class Program
                 var dir = new DirectoryInfo(Path.GetFullPath(start));
                 while (dir != null)
                 {
-                    if (File.Exists(Path.Combine(dir.FullName, "package.json")) && Directory.Exists(Path.Combine(dir.FullName, "Lukas", "simulator")))
+                    if (Directory.Exists(Path.Combine(dir.FullName, "Lukas", "simulator")))
                         return dir.FullName;
                     dir = dir.Parent;
                 }

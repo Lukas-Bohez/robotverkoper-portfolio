@@ -56,7 +56,7 @@ if (-not $NoShortcut) {
   $link.TargetPath = $Out
   $link.WorkingDirectory = Split-Path $Out
   $link.IconLocation = "$Out,0"
-  $link.Description = 'Start the whole Delivery robot demo: database, API, platform and the simulator'
+  $link.Description = 'Start the demo of Lukas: platform simulator, seller API with its own database, seller PWA and the robot simulator'
   $link.Save()
   Write-Host "Shortcut on the desktop: Delivery Robot Demo"
 }

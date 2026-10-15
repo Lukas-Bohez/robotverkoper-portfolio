@@ -174,7 +174,7 @@ export const en: Messages = {
     remove: 'Remove',
     removed: 'The role {name} has been removed.',
     removeError: 'The role could not be removed.',
-    preview: 'View as this role',
+    preview: 'View as role',
     firstAdmin: {
       title: 'First administrator',
       text: 'The first administrator was invited when the company was created. After that the company manages its staff and roles itself.',
@@ -284,6 +284,7 @@ export const en: Messages = {
         company_role_created: 'Role created',
         company_role_deleted: 'Role removed',
         robot_created: 'Robot given',
+        robot_key_sent: 'Key sent to simulator',
         robot_replaced: 'Robot replaced',
         defect_reported: 'Defect reported',
         defect_closed: 'Defect closed',
