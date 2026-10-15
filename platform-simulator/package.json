@@ -1,0 +1,20 @@
+{
+  "name": "platform-simulator",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "Speelt het platform van de bedrijven na (bedrijven, rollen, robots), zodat het verkopersdeel van Lukas zonder echte bedrijfsdata draait.",
+  "scripts": {
+    "start": "node src/main.ts",
+    "dev": "node --watch src/main.ts",
+    "test": "node --test --disable-warning=ExperimentalWarning \"test/*.test.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "typescript": "~6.0.0"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
+}

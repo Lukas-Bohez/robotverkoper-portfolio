@@ -1,0 +1,23 @@
+{
+  "name": "seller-api",
+  "version": "0.0.0",
+  "private": true,
+  "type": "module",
+  "description": "De eigen API en database van de verkopers van de robots. Praat met het platform van de bedrijven via één kleine poort.",
+  "scripts": {
+    "start": "node --disable-warning=ExperimentalWarning src/main.ts",
+    "dev": "node --watch --disable-warning=ExperimentalWarning src/main.ts",
+    "test": "node --test --disable-warning=ExperimentalWarning \"test/*.test.ts\"",
+    "type-check": "tsc --noEmit"
+  },
+  "dependencies": {
+    "jose": "^6.2.12"
+  },
+  "devDependencies": {
+    "@types/node": "^24.13.4",
+    "typescript": "~6.0.0"
+  },
+  "engines": {
+    "node": "^22.18.0 || >=24.12.0"
+  }
+}
