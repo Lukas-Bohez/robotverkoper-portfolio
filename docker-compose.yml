@@ -1,0 +1,52 @@
+# The whole of Lukas's part in Docker, and nothing of Maciej's: no MongoDB, no NestJS API, no other PWA.
+#
+#   cd Lukas
+#   docker compose up --build
+#
+# Open http://localhost:5174 and log in with docent@howest.be and any password (local demo logins, no Firebase needed).
+# For the real thing (Firebase logins, the built PWA behind nginx) add docker-compose.firebase.yml, see Lukas/README.md.
+name: robotverkoper
+
+services:
+  platform-simulator:
+    build: ./platform-simulator
+    ports:
+      - "4100:4100"
+    volumes:
+      - platform-data:/data
+    restart: unless-stopped
+
+  seller-api:
+    build: ./seller-api
+    depends_on:
+      platform-simulator:
+        condition: service_healthy
+    environment:
+      # The demo logins accept anyone: the API refuses them when NODE_ENV=production
+      AUTH_MODE: dev
+      SEED_DEMO: "true"
+      SELLER_ADMIN_EMAILS: ${SELLER_ADMIN_EMAILS:-docent@howest.be}
+      # Container to container
+      PLATFORM_URL: http://platform-simulator:4100
+      # What the robot app (on the host or on a phone) connects to: the address of the host, not of a container
+      ROBOT_API_URL: ${ROBOT_API_URL:-http://localhost:4100/graphql}
+      CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5174,http://127.0.0.1:5174}
+    ports:
+      - "4200:4200"
+    volumes:
+      - seller-data:/data
+    restart: unless-stopped
+
+  seller-pwa:
+    build:
+      context: ./seller-pwa
+      target: dev
+    depends_on:
+      - seller-api
+    ports:
+      - "5174:5174"
+    restart: unless-stopped
+
+volumes:
+  platform-data:
+  seller-data:

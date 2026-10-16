@@ -1,0 +1,28 @@
+# Override: real Firebase logins and the built PWA behind nginx (no demo logins, no demo data).
+#
+#   cd Lukas
+#   docker compose --env-file seller-pwa/.env -f docker-compose.yml -f docker-compose.firebase.yml up --build
+#
+# seller-pwa/.env holds the VITE_FIREBASE_* values (copy seller-pwa/.env.example). The PWA is then on http://localhost:5174.
+# SELLER_ADMIN_EMAILS (comma separated) are the accounts that become seller admin the first time they log in.
+services:
+  seller-api:
+    environment:
+      AUTH_MODE: firebase
+      SEED_DEMO: "false"
+      FIREBASE_PROJECT_ID: ${VITE_FIREBASE_projectId:?Fill in VITE_FIREBASE_projectId in Lukas/seller-pwa/.env}
+      SELLER_ADMIN_EMAILS: ${SELLER_ADMIN_EMAILS:?Set SELLER_ADMIN_EMAILS to the e-mail address of the first seller admin}
+
+  seller-pwa:
+    build:
+      target: prod
+      args:
+        VITE_API_URL: ${VITE_API_URL:-http://localhost:4200}
+        VITE_FIREBASE_apiKey: ${VITE_FIREBASE_apiKey:?}
+        VITE_FIREBASE_authDomain: ${VITE_FIREBASE_authDomain:?}
+        VITE_FIREBASE_projectId: ${VITE_FIREBASE_projectId:?}
+        VITE_FIREBASE_storageBucket: ${VITE_FIREBASE_storageBucket:-}
+        VITE_FIREBASE_messagingSenderId: ${VITE_FIREBASE_messagingSenderId:-}
+        VITE_FIREBASE_appId: ${VITE_FIREBASE_appId:-}
+    ports: !override
+      - "5174:80"
