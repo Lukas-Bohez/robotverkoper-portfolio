@@ -2,7 +2,7 @@
 
 Het ontwerp is **eerst in Figma gemaakt, daarna pas in code**, zoals de klant vroeg in [#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129) (*"Werken met Figma, niet meteen in code"*). Het bestand staat in de repo: [`Advanced Fullstack Development.fig`](<../Advanced Fullstack Development.fig>) (open het in Figma met *File → Open file*, of sleep het erin). De afbeeldingen hieronder zijn exports van dat bestand, zodat je het ook op GitHub kunt bekijken.
 
-**Van wie:** dit ontwerp is van **Lukas** en gaat enkel over zijn deel, het verkopersplatform. Er staan geen schermen van Maciej in en er wordt niets over beweerd ([`../../docs/wie-doet-wat.md`](../../docs/wie-doet-wat.md)).
+**Van wie:** dit ontwerp is van **Lukas** en gaat enkel over zijn deel, het verkopersplatform. Er staan geen schermen van Maciej in en er wordt niets over beweerd ([wie wat doet, bovenaan de README](../../README.md#wie-doet-wat)).
 
 Het bestand heeft drie pagina's: **Inspiratie** (waar het ontwerp op leunt), **Components** (de bouwstenen met varianten) en **Design** (het designsysteem, de flow en alle schermen).
 

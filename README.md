@@ -2,7 +2,7 @@
 
 Alles wat Lukas Bohez zelfstandig bouwt en bezit, in één map. **Deze map draait zonder de rest van het project**: ze heeft een eigen API, een eigen database en een eigen start. Van het platform van Maciej (de bedrijven, hun personeel en klanten, het menu, de bestellingen) staat hier niets, en ze gebruikt er niets van. Het platform wordt in de demo gespeeld door een **simulator**.
 
-Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md). **Wie wat doet, in één pagina: [`../docs/wie-doet-wat.md`](../docs/wie-doet-wat.md).**
+Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md). **Wie wat doet, staat bovenaan de [README van het project](../README.md#wie-doet-wat).**
 
 ## Zo lees je dit deel, in deze volgorde
 
@@ -18,7 +18,7 @@ Van de vraag van de klant tot het dossier. Elke stap verwijst naar de volgende.
 | 6 | [`simulator/README.md`](simulator/README.md) | De robot-app (Flutter) |
 | 7 | [`../docs/demo-draaiboek.md`](../docs/demo-draaiboek.md) (2a en 2c) | Alles starten en tonen, stap voor stap |
 | 8 | [Controleren](#controleren) | Tests en type-check |
-| 9 | [`../docs/wie-doet-wat.md`](../docs/wie-doet-wat.md) en [`../docs/bewijs-wie-schreef-wat-2026-10-15.md`](../docs/bewijs-wie-schreef-wat-2026-10-15.md) | Wie wat deed, met bewijs uit git |
+| 9 | [Wie wat doet](../README.md#wie-doet-wat) en [`../docs/bewijs-wie-schreef-wat-2026-10-15.md`](../docs/bewijs-wie-schreef-wat-2026-10-15.md) | Wie wat deed, met bewijs uit git |
 | 10 | [`../docs/dossier-lukas.md`](../docs/dossier-lukas.md) en het [projectdossier](../README.md#projectdossier) | De checklists van de leerkrachten, eerlijk ingevuld, met werktijd, succes en moeilijkheid |
 
 **Gebouwd naar de wensen van de klant** ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129)): een eigen PWA voor de robotverkoper, zonder personeel of klantgegevens, met defecten en vervangen, rollen van bedrijven, bekijken als rol, één geïsoleerde etenrobot en geen Google-login. Per wens staat in [`../docs/klantfeedback-129.md`](../docs/klantfeedback-129.md) wat er gedaan is en waar je het ziet.
