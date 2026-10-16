@@ -1,0 +1,3 @@
+# The design files are binary: never touch their line endings
+*.fig binary
+*.png binary

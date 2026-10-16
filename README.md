@@ -16,6 +16,7 @@ Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md).
 | [`simulator/`](simulator/) | De robotsimulator: de gsm (of pc) is de robot. De sleutel van een nieuwe robot komt vanzelf uit de PWA | Flutter |
 | [`demo-launcher/`](demo-launcher/) | `Delivery Robot Demo.exe`: start alles hierboven met één klik | C# |
 | [`scripts/`](scripts/) | `npm run dev` en `npm run setup` van deze map | Node |
+| [`Advanced Fullstack Development.fig`](<Advanced Fullstack Development.fig>) en [`design/`](design/) | Het **ontwerp in Figma**: Inspiratie, Components (7 componenten met varianten) en Design (designsysteem, flow, 10 schermen voor desktop en telefoon, donkere modus). `design/` toont alles als afbeeldingen, met uitleg | Figma |
 
 Het contract met het platform (wat er gedeeld wordt en hoe) staat in [`CONTRACT.md`](CONTRACT.md).
 
