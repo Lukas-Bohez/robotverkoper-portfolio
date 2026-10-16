@@ -1,12 +1,13 @@
 import type { ExecutionContext } from '@nestjs/common'
 import { GqlExecutionContext, type GqlContextType } from '@nestjs/graphql'
 import type { Request } from 'express'
-import type { SellerRole } from './permissions.js'
-
 /** Who is asking: filled in by the AuthGuard */
 export interface Caller {
   email: string
-  role: SellerRole | null
+  /** The key of the role (admin, technician, ...), or null when this account has no working role */
+  role: string | null
+  /** What the role allows: standard permissions and extra claims */
+  permissions: string[]
 }
 
 export interface AuthRequest extends Request {

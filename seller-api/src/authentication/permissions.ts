@@ -1,43 +1,84 @@
-import { registerEnumType } from '@nestjs/graphql'
+import type { LocalizedNames } from '../entities/localized-names.entity.js'
 
-/** The roles of the people who work at the robot seller (not the roles inside a company) */
-export enum SellerRole {
-  ADMIN = 'admin',
-  TECHNICIAN = 'technician',
-}
-registerEnumType(SellerRole, {
-  name: 'SellerRole',
-  description: 'The role of someone who works at the robot seller',
-})
+/**
+ * The rights of the people who work at the robot seller, in groups (the screen "Rollen en rechten van het team"
+ * shows them as the rows of a table). A role holds a list of these keys, plus any extra claims.
+ */
+export const SELLER_PERMISSION_GROUPS = {
+  companies: ['companies:read', 'companies:create', 'companies:archive', 'company-roles:manage'],
+  robots: ['robots:read', 'robots:create', 'robots:replace', 'robots:archive'],
+  defects: ['defects:read', 'defects:report', 'defects:claim', 'defects:close', 'defects:call'],
+  team: ['accounts:manage', 'roles:manage', 'audit:read'],
+  archive: ['archive:read', 'archive:restore'],
+} as const
 
 export const SELLER_PERMISSIONS = [
-  'companies:read',
-  'companies:create',
-  'company-roles:manage',
-  'robots:read',
-  'robots:create',
-  'defects:read',
-  'defects:manage',
-  'accounts:manage',
-  'audit:read',
+  ...SELLER_PERMISSION_GROUPS.companies,
+  ...SELLER_PERMISSION_GROUPS.robots,
+  ...SELLER_PERMISSION_GROUPS.defects,
+  ...SELLER_PERMISSION_GROUPS.team,
+  ...SELLER_PERMISSION_GROUPS.archive,
 ] as const
 export type SellerPermission = (typeof SELLER_PERMISSIONS)[number]
 
-const BY_ROLE: Record<SellerRole, readonly SellerPermission[]> = {
-  [SellerRole.ADMIN]: SELLER_PERMISSIONS,
-  // The "API role" of the client feedback: robots and technical data, nothing about people or the setup of companies
-  [SellerRole.TECHNICIAN]: [
-    'companies:read',
-    'robots:read',
-    'robots:create',
-    'defects:read',
-    'defects:manage',
-  ],
+/**
+ * An extra claim is a right outside the standard list, in the form `area:action` (for example
+ * `exports:invoices`). The API stores it with the role; the app that needs it checks for it.
+ */
+export const EXTRA_CLAIM = /^[a-z][a-z0-9-]*:[a-z][a-z0-9-]*$/
+
+export function isStandardPermission(key: string): key is SellerPermission {
+  return (SELLER_PERMISSIONS as readonly string[]).includes(key)
 }
 
-export function permissionsOf(role: SellerRole): readonly SellerPermission[] {
-  return BY_ROLE[role]
+/** The group of a permission (companies, robots, ...), or `extra` for an extra claim */
+export function groupOf(key: string): string {
+  for (const [group, keys] of Object.entries(SELLER_PERMISSION_GROUPS)) {
+    if ((keys as readonly string[]).includes(key)) return group
+  }
+  return 'extra'
 }
+
+/** The keys of the roles that always exist */
+export const ADMIN_ROLE_KEY = 'admin'
+export const TECHNICIAN_ROLE_KEY = 'technician'
+
+export interface DefaultRole {
+  key: string
+  names: LocalizedNames
+  permissions: readonly string[]
+  /** The administrator role is locked: it always holds every right and cannot be archived */
+  locked: boolean
+}
+
+/**
+ * The roles a fresh database starts with. The administrator (the superadmin of the client feedback) can do
+ * everything; the technician sees robots and defects and works on them, but has no say over people, companies
+ * or the setup (the "API role" of the client feedback #129).
+ */
+export const DEFAULT_ROLES: DefaultRole[] = [
+  {
+    key: ADMIN_ROLE_KEY,
+    names: { nl: 'Beheerder', en: 'Administrator', fr: 'Administrateur', de: 'Administrator' },
+    permissions: SELLER_PERMISSIONS,
+    locked: true,
+  },
+  {
+    key: TECHNICIAN_ROLE_KEY,
+    names: { nl: 'Technicus', en: 'Technician', fr: 'Technicien', de: 'Techniker' },
+    permissions: [
+      'companies:read',
+      'robots:read',
+      'robots:create',
+      'robots:replace',
+      'defects:read',
+      'defects:report',
+      'defects:claim',
+      'defects:close',
+    ],
+    locked: false,
+  },
+]
 
 /**
  * The permission keys a company role can hold: the vocabulary of the platform of the companies (a copy of

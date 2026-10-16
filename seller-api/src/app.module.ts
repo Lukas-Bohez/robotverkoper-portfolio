@@ -7,6 +7,7 @@ import { TypeOrmModule } from '@nestjs/typeorm'
 import type { Request } from 'express'
 import type { ExecutionResult, GraphQLFormattedError } from 'graphql'
 import { AccountsModule } from './accounts/accounts.module.js'
+import { ArchiveModule } from './archive/archive.module.js'
 import { AuditModule } from './audit/audit.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'
 import { requestFromConnectionParams } from './authentication/request.js'
@@ -23,7 +24,9 @@ import { HealthModule } from './health/health.module.js'
 import { PairingsModule } from './pairings/pairings.module.js'
 import { PlatformModule } from './platform/platform.module.js'
 import { RobotsModule } from './robots/robots.module.js'
+import { RolePresetsModule } from './role-presets/role-presets.module.js'
 import { RolesModule } from './roles/roles.module.js'
+import { SellerRolesModule } from './seller-roles/seller-roles.module.js'
 import { SeedModule } from './seed/seed.module.js'
 
 /** The generated schema, next to the build. `memory` keeps it in memory only (the tests). */
@@ -84,6 +87,9 @@ function validationException(errors: ValidationError[]): DomainException {
     RobotsModule,
     DefectsModule,
     RolesModule,
+    SellerRolesModule,
+    RolePresetsModule,
+    ArchiveModule,
     PairingsModule,
     SeedModule,
   ],

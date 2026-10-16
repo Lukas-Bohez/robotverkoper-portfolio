@@ -7,15 +7,21 @@ import {
 } from '@nestjs/common'
 import { Reflector } from '@nestjs/core'
 import { AccountsService } from '../accounts/accounts.service.js'
-import { ANY_LOGIN, IS_PUBLIC, REQUIRED_PERMISSIONS } from './decorators.js'
+import { SellerRolesService } from '../seller-roles/seller-roles.service.js'
+import {
+  ANY_LOGIN,
+  IS_PUBLIC,
+  REQUIRED_ANY_PERMISSION,
+  REQUIRED_PERMISSIONS,
+} from './decorators.js'
 import { IdentityService } from './identity.service.js'
-import { permissionsOf, type SellerPermission } from './permissions.js'
+import type { SellerPermission } from './permissions.js'
 import { headerValue, requestOf } from './request.js'
 
 /**
  * Global guard (APP_GUARD) for every query, mutation, subscription and controller:
  * 1. @Public(): no login needed
- * 2. otherwise a Bearer token → an e-mail address → the role of that person
+ * 2. otherwise a Bearer token → an e-mail address → the role of that person → what that role allows
  * 3. @AnyLogin(): a login is enough; without it a role is needed (nothing is open by accident)
  * 4. @RequirePermissions(): the role must hold all of them
  */
@@ -25,6 +31,7 @@ export class AuthGuard implements CanActivate {
     private readonly reflector: Reflector,
     private readonly identity: IdentityService,
     private readonly accounts: AccountsService,
+    private readonly roles: SellerRolesService,
   ) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
@@ -39,8 +46,11 @@ export class AuthGuard implements CanActivate {
       throw new UnauthorizedException('Log in first')
     }
     const { email } = await this.identity.verify(token)
-    const role = await this.accounts.roleOf(email)
-    req.caller = { email, role }
+    const roleKey = await this.accounts.roleKeyOf(email)
+    const permissions = await this.roles.permissionsOf(roleKey)
+    // A role that holds nothing (or that was archived) is no role: the person has no access
+    const role = permissions.length > 0 ? roleKey : null
+    req.caller = { email, role, permissions }
 
     if (this.reflector.getAllAndOverride<boolean>(ANY_LOGIN, targets)) return true
     if (role === null) throw new ForbiddenException('You have no access to this')
@@ -49,7 +59,14 @@ export class AuthGuard implements CanActivate {
       REQUIRED_PERMISSIONS,
       targets,
     )
-    if (required?.some(permission => !permissionsOf(role).includes(permission))) {
+    if (required?.some(permission => !permissions.includes(permission))) {
+      throw new ForbiddenException('You have no access to this')
+    }
+    const anyOf = this.reflector.getAllAndOverride<SellerPermission[] | undefined>(
+      REQUIRED_ANY_PERMISSION,
+      targets,
+    )
+    if (anyOf && !anyOf.some(permission => permissions.includes(permission))) {
       throw new ForbiddenException('You have no access to this')
     }
     return true

@@ -3,10 +3,12 @@ import { DomainException } from '../../src/common/domain-exception.js'
 import {
   PlatformGateway,
   type PlatformCompany,
+  type PlatformCondition,
   type PlatformRole,
   type RegisteredRobot,
   type RobotLive,
   type RobotRegistration,
+  type RoleInput,
 } from '../../src/platform/platform.gateway.js'
 
 /** The platform, played in memory: no network, no real company data */
@@ -20,6 +22,7 @@ export class FakePlatform extends PlatformGateway {
   keys: string[] = []
   down = false
   simulated = new Map<string, { online: boolean; battery: number }>()
+  conditions = new Map<string, Omit<PlatformCondition, 'id'>>()
   lastCreateCompany: unknown = null
 
   constructor() {
@@ -37,6 +40,7 @@ export class FakePlatform extends PlatformGateway {
     this.keys = []
     this.down = false
     this.simulated = new Map()
+    this.conditions = new Map()
     this.lastCreateCompany = null
   }
 
@@ -67,29 +71,72 @@ export class FakePlatform extends PlatformGateway {
     return Promise.resolve(company)
   }
 
-  listRoles(companyId: string): Promise<PlatformRole[]> {
-    this.check()
+  private rolesOf(companyId: string): PlatformRole[] {
     if (!this.roles.has(companyId)) {
       this.roles.set(companyId, [
-        { id: `${companyId}-admin`, name: 'TENANT_ADMIN', permissions: ['tenant:manage'], locked: true },
+        {
+          id: `${companyId}-admin`,
+          name: 'TENANT_ADMIN',
+          names: null,
+          permissions: ['tenant:manage'],
+          locked: true,
+          archivedAt: null,
+        },
       ])
     }
-    return Promise.resolve(this.roles.get(companyId)!.map(role => ({ ...role })))
+    return this.roles.get(companyId)!
   }
 
-  async createRole(companyId: string, input: { name: string; permissions: string[] }): Promise<PlatformRole> {
-    await this.listRoles(companyId)
-    const role = { id: randomUUID(), name: input.name, permissions: input.permissions, locked: false }
-    this.roles.get(companyId)!.push(role)
+  listRoles(companyId: string, withArchived = false): Promise<PlatformRole[]> {
+    this.check()
+    return Promise.resolve(
+      this.rolesOf(companyId)
+        .filter(role => withArchived || !role.archivedAt)
+        .map(role => ({ ...role })),
+    )
+  }
+
+  async createRole(companyId: string, input: RoleInput): Promise<PlatformRole> {
+    this.check()
+    const role: PlatformRole = {
+      id: randomUUID(),
+      name: input.name,
+      names: input.names ?? null,
+      permissions: input.permissions,
+      locked: false,
+      archivedAt: null,
+    }
+    this.rolesOf(companyId).push(role)
+    return { ...role }
+  }
+
+  private roleOf(companyId: string, roleId: string): PlatformRole {
+    const role = this.rolesOf(companyId).find(item => item.id === roleId)
+    if (!role) throw new DomainException(404, 'role_not_found', 'This role does not exist')
     return role
   }
 
-  async deleteRole(companyId: string, roleId: string): Promise<void> {
-    await this.listRoles(companyId)
-    this.roles.set(
-      companyId,
-      this.roles.get(companyId)!.filter(role => role.id !== roleId),
-    )
+  async updateRole(companyId: string, roleId: string, input: Partial<RoleInput>): Promise<PlatformRole> {
+    this.check()
+    const role = this.roleOf(companyId, roleId)
+    if (input.name) role.name = input.name
+    if (input.names) role.names = input.names
+    if (input.permissions) role.permissions = input.permissions
+    return { ...role }
+  }
+
+  async archiveRole(companyId: string, roleId: string): Promise<PlatformRole> {
+    this.check()
+    const role = this.roleOf(companyId, roleId)
+    role.archivedAt = new Date().toISOString()
+    return { ...role }
+  }
+
+  async restoreRole(companyId: string, roleId: string): Promise<PlatformRole> {
+    this.check()
+    const role = this.roleOf(companyId, roleId)
+    role.archivedAt = null
+    return { ...role }
   }
 
   registerRobot(input: RobotRegistration): Promise<RegisteredRobot> {
@@ -111,11 +158,46 @@ export class FakePlatform extends PlatformGateway {
     return Promise.resolve()
   }
 
+  reinstateRobot(robotId: string): Promise<void> {
+    this.check()
+    const robot = this.robots.get(robotId)
+    if (robot) robot.retired = false
+    return Promise.resolve()
+  }
+
   simulateTelemetry(robotId: string, state: { online: boolean; battery: number }): Promise<void> {
     this.simulated.set(robotId, state)
     const robot = this.robots.get(robotId)
     if (robot) Object.assign(robot, state)
     return Promise.resolve()
+  }
+
+  simulateCondition(robotId: string, condition: Partial<Omit<PlatformCondition, 'id'>>): Promise<void> {
+    this.conditions.set(robotId, {
+      tilted: false,
+      tiltDegrees: null,
+      hasCargo: false,
+      cargoSummary: null,
+      cargoSince: null,
+      compartmentTemp: null,
+      lid: 'LOCKED',
+      errorCode: null,
+      errorText: null,
+      location: null,
+      ...this.conditions.get(robotId),
+      ...condition,
+    })
+    return Promise.resolve()
+  }
+
+  robotConditions(ids: string[]): Promise<PlatformCondition[]> {
+    this.check()
+    return Promise.resolve(
+      ids.flatMap(id => {
+        const condition = this.conditions.get(id)
+        return condition ? [{ id, ...condition }] : []
+      }),
+    )
   }
 
   robotsLive(ids: string[]): Promise<RobotLive[]> {

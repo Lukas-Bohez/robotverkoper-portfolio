@@ -7,5 +7,6 @@ import { RolesService } from './roles.service.js'
 @Module({
   imports: [CompaniesModule, AuditModule],
   providers: [RolesService, RolesResolver],
+  exports: [RolesService],
 })
 export class RolesModule {}

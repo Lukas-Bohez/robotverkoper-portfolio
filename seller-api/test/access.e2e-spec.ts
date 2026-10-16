@@ -1,5 +1,6 @@
 import request from 'supertest'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
+import { SELLER_PERMISSIONS } from '../src/authentication/permissions.js'
 import {
   ADMIN,
   OWNER,
@@ -9,7 +10,18 @@ import {
   gql,
   type TestContext,
 } from './utils/test-app.js'
-import { ACCOUNTS, ADD_ACCOUNT, AUDIT, COMPANIES, CREATE_COMPANY, ME } from './utils/operations.js'
+import {
+  ACCOUNTS,
+  AUDIT,
+  COMPANIES,
+  CREATE_COMPANY,
+  ME,
+  REMOVE_ACCOUNT,
+  RESTORE_ACCOUNT,
+  SELLER_ROLES,
+  UPDATE_SELLER_ROLE,
+} from './utils/operations.js'
+import { addAccount } from './utils/helpers.js'
 
 let ctx: TestContext
 
@@ -45,15 +57,15 @@ describe('who may do what', () => {
   })
 
   it('someone who is not on our staff is told there is no access', async () => {
-    const me = await gql<{ me: { role: string | null; permissions: string[] } }>(ctx.app, ME, {}, 'vreemde@example.com')
+    const me = await gql<{ me: { role: unknown; permissions: string[] } }>(ctx.app, ME, {}, 'vreemde@example.com')
     expect(me.data?.me).toEqual({ email: 'vreemde@example.com', role: null, permissions: [] })
     expect(codeOf(await gql(ctx.app, COMPANIES, {}, 'vreemde@example.com'))).toBe('FORBIDDEN')
   })
 
   it.each([ADMIN, OWNER])('%s is a superadmin: every permission, without needing an account first', async email => {
-    const me = await gql<{ me: { role: string; permissions: string[] } }>(ctx.app, ME, {}, email)
-    expect(me.data?.me.role).toBe('ADMIN')
-    expect(me.data?.me.permissions).toHaveLength(9)
+    const me = await gql<{ me: { role: { key: string; name: string }; permissions: string[] } }>(ctx.app, ME, {}, email)
+    expect(me.data?.me.role).toEqual({ key: 'admin', name: 'Beheerder' })
+    expect(me.data?.me.permissions).toHaveLength(SELLER_PERMISSIONS.length)
     for (const query of [COMPANIES, ACCOUNTS, AUDIT]) {
       expect((await gql(ctx.app, query, {}, email)).errors).toBeUndefined()
     }
@@ -67,12 +79,12 @@ describe('who may do what', () => {
   })
 
   it('matches an address in any letter case', async () => {
-    const me = await gql<{ me: { role: string } }>(ctx.app, ME, {}, 'LukasBohez@Gmail.com')
-    expect(me.data?.me.role).toBe('ADMIN')
+    const me = await gql<{ me: { role: { key: string } } }>(ctx.app, ME, {}, 'LukasBohez@Gmail.com')
+    expect(me.data?.me.role.key).toBe('admin')
   })
 
   it('a technician sees robots and defects but cannot create companies, set up roles or manage staff', async () => {
-    await gql(ctx.app, ADD_ACCOUNT, { input: { email: TECH, role: 'TECHNICIAN' } })
+    await addAccount(ctx, TECH, 'technician')
     expect((await gql(ctx.app, COMPANIES, {}, TECH)).errors).toBeUndefined()
     expect((await gql(ctx.app, '{ defects { id } }', {}, TECH)).errors).toBeUndefined()
     const create = await gql(
@@ -85,6 +97,7 @@ describe('who may do what', () => {
     expect(codeOf(await gql(ctx.app, '{ companyRoles(companyId: "c-demo") { id } }', {}, TECH))).toBe('FORBIDDEN')
     expect(codeOf(await gql(ctx.app, ACCOUNTS, {}, TECH))).toBe('FORBIDDEN')
     expect(codeOf(await gql(ctx.app, AUDIT, {}, TECH))).toBe('FORBIDDEN')
+    expect(codeOf(await gql(ctx.app, SELLER_ROLES, {}, TECH))).toBe('FORBIDDEN')
     const robot = await gql(
       ctx.app,
       'mutation ($input: CreateRobotInput!) { createRobot(companyId: "c-demo", input: $input) { robot { id } } }',
@@ -92,6 +105,34 @@ describe('who may do what', () => {
       TECH,
     )
     expect(robot.errors).toBeUndefined()
+  })
+
+  it('what a role may do is data: the administrator changes it and the change counts at once', async () => {
+    await addAccount(ctx, TECH, 'technician')
+    expect(codeOf(await gql(ctx.app, AUDIT, {}, TECH))).toBe('FORBIDDEN')
+
+    const roles = (await gql<{ sellerRoles: { id: string; key: string; permissions: string[] }[] }>(ctx.app, SELLER_ROLES)).data!.sellerRoles
+    const technician = roles.find(role => role.key === 'technician')!
+    const updated = await gql(ctx.app, UPDATE_SELLER_ROLE, {
+      id: technician.id,
+      input: { permissions: [...technician.permissions, 'audit:read'] },
+    })
+    expect(updated.errors).toBeUndefined()
+    expect((await gql(ctx.app, AUDIT, {}, TECH)).errors).toBeUndefined()
+
+    const me = await gql<{ me: { permissions: string[] } }>(ctx.app, ME, {}, TECH)
+    expect(me.data?.me.permissions).toContain('audit:read')
+  })
+
+  it('an account that was archived can no longer log in, and can again after it was restored', async () => {
+    await addAccount(ctx, TECH, 'technician')
+    expect((await gql(ctx.app, COMPANIES, {}, TECH)).errors).toBeUndefined()
+
+    expect((await gql(ctx.app, REMOVE_ACCOUNT, { email: TECH })).errors).toBeUndefined()
+    expect(codeOf(await gql(ctx.app, COMPANIES, {}, TECH))).toBe('FORBIDDEN')
+
+    expect((await gql(ctx.app, RESTORE_ACCOUNT, { email: TECH })).errors).toBeUndefined()
+    expect((await gql(ctx.app, COMPANIES, {}, TECH)).errors).toBeUndefined()
   })
 })
 
@@ -148,6 +189,7 @@ describe('the auth matrix', () => {
     }
     if (type.name === 'Boolean') return true
     if (type.name === 'Int') return 1
+    if (type.name === 'Float') return 1.5
     return 'x@example.com'
   }
 
@@ -176,7 +218,7 @@ describe('the auth matrix', () => {
   ]
 
   it('finds the operations of the schema', () => {
-    expect(operations().length).toBeGreaterThan(20)
+    expect(operations().length).toBeGreaterThan(60)
   })
 
   it('every operation but the open ones answers UNAUTHENTICATED without a login', async () => {

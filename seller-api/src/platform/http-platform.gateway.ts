@@ -4,10 +4,12 @@ import { APP_CONFIG, type AppConfig } from '../config/app-config.js'
 import {
   PlatformGateway,
   type PlatformCompany,
+  type PlatformCondition,
   type PlatformRole,
   type RegisteredRobot,
   type RobotLive,
   type RobotRegistration,
+  type RoleInput,
 } from './platform.gateway.js'
 
 /** Talks to a platform over HTTP + JSON: the simulator in the demo, a real platform behind an adapter later */
@@ -68,16 +70,64 @@ export class HttpPlatformGateway extends PlatformGateway {
     return { id, name, subdomain, createdAt }
   }
 
-  listRoles(companyId: string): Promise<PlatformRole[]> {
-    return this.call('GET', `/companies/${encodeURIComponent(companyId)}/roles`)
+  async listRoles(companyId: string, withArchived = false): Promise<PlatformRole[]> {
+    const roles = await this.call<Partial<PlatformRole>[]>(
+      'GET',
+      `/companies/${encodeURIComponent(companyId)}/roles${withArchived ? '?withArchived=true' : ''}`,
+    )
+    return roles.map(role => this.role(role))
   }
 
-  createRole(companyId: string, input: { name: string; permissions: string[] }): Promise<PlatformRole> {
-    return this.call('POST', `/companies/${encodeURIComponent(companyId)}/roles`, input)
+  /** A platform that does not know names per language or archiving still answers with the same shape */
+  private role(role: Partial<PlatformRole>): PlatformRole {
+    return {
+      id: String(role.id),
+      name: String(role.name),
+      names: role.names ?? null,
+      permissions: role.permissions ?? [],
+      locked: role.locked ?? false,
+      archivedAt: role.archivedAt ?? null,
+    }
   }
 
-  deleteRole(companyId: string, roleId: string): Promise<void> {
-    return this.call('DELETE', `/companies/${encodeURIComponent(companyId)}/roles/${encodeURIComponent(roleId)}`)
+  async createRole(companyId: string, input: RoleInput): Promise<PlatformRole> {
+    return this.role(
+      await this.call('POST', `/companies/${encodeURIComponent(companyId)}/roles`, input),
+    )
+  }
+
+  async updateRole(
+    companyId: string,
+    roleId: string,
+    input: Partial<RoleInput>,
+  ): Promise<PlatformRole> {
+    return this.role(
+      await this.call(
+        'PATCH',
+        `/companies/${encodeURIComponent(companyId)}/roles/${encodeURIComponent(roleId)}`,
+        input,
+      ),
+    )
+  }
+
+  async archiveRole(companyId: string, roleId: string): Promise<PlatformRole> {
+    return this.role(
+      await this.call(
+        'POST',
+        `/companies/${encodeURIComponent(companyId)}/roles/${encodeURIComponent(roleId)}/archive`,
+        {},
+      ),
+    )
+  }
+
+  async restoreRole(companyId: string, roleId: string): Promise<PlatformRole> {
+    return this.role(
+      await this.call(
+        'POST',
+        `/companies/${encodeURIComponent(companyId)}/roles/${encodeURIComponent(roleId)}/restore`,
+        {},
+      ),
+    )
   }
 
   registerRobot(input: RobotRegistration): Promise<RegisteredRobot> {
@@ -86,6 +136,22 @@ export class HttpPlatformGateway extends PlatformGateway {
 
   async retireRobot(robotId: string): Promise<void> {
     await this.call('POST', `/robots/${encodeURIComponent(robotId)}/retire`, {})
+  }
+
+  async reinstateRobot(robotId: string): Promise<void> {
+    await this.call('POST', `/robots/${encodeURIComponent(robotId)}/reinstate`, {})
+  }
+
+  async robotConditions(ids: string[]): Promise<PlatformCondition[]> {
+    if (ids.length === 0) return []
+    return this.call('GET', `/robots/conditions?ids=${ids.map(encodeURIComponent).join(',')}`)
+  }
+
+  async simulateCondition(
+    robotId: string,
+    condition: Partial<Omit<PlatformCondition, 'id'>>,
+  ): Promise<void> {
+    await this.call('PUT', `/robots/${encodeURIComponent(robotId)}/condition`, condition)
   }
 
   async simulateTelemetry(robotId: string, state: { online: boolean; battery: number }): Promise<void> {

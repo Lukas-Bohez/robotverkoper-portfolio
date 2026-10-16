@@ -60,8 +60,10 @@ export class PairingsService {
    * characters must match what we stored), and nothing of it is written down here.
    */
   async deliver(actor: string, pairingId: string, robotId: string, apiKey: string): Promise<void> {
-    const robot = await this.robots.find(robotId)
-    if (!robot) throw new DomainException(404, 'robot_not_found', 'This robot does not exist')
+    const robot = await this.robots.findById(robotId)
+    if (!robot?.apiKeyPrefix) {
+      throw new DomainException(404, 'robot_not_found', 'This robot does not exist')
+    }
     if (apiKey.slice(0, robot.apiKeyPrefix.length) !== robot.apiKeyPrefix) {
       throw new DomainException(400, 'key_mismatch', 'This key does not belong to this robot')
     }

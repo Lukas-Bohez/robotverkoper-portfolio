@@ -16,7 +16,7 @@ export const TECH = 'technieker@fabrikant.example'
 export interface TestContext {
   app: INestApplication
   platform: FakePlatform
-  /** Empty database, indexes and robot models again, and a fresh platform: every test starts clean */
+  /** Empty database, indexes, robot models and the standard roles again, and a fresh platform: every test starts clean */
   reset(): Promise<void>
   close(): Promise<void>
 }
@@ -38,6 +38,7 @@ export async function createTestApp(admins: string[] = [ADMIN]): Promise<TestCon
     await app.get(DataSource).dropDatabase()
     await app.get(DatabaseVersionService).migrate()
     await app.get(SeedService).seedModels()
+    await app.get(SeedService).seedRoles()
   }
   await reset()
   return { app, platform, reset, close: () => app.close() }

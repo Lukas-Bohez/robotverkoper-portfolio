@@ -1,21 +1,20 @@
 import { Field, ID, ObjectType } from '@nestjs/graphql'
-import { ObjectId } from 'mongodb'
-import { Column, Entity, ObjectIdColumn } from 'typeorm'
+import { Column, CreateDateColumn, Entity, ObjectIdColumn } from 'typeorm'
 
 @Entity('audit')
 @ObjectType({ description: 'Who did what at the robot seller, and when' })
 export class AuditEntry {
-  @ObjectIdColumn()
-  _id: ObjectId
+  @ObjectIdColumn() // Database link - TypeORM
+  _id: string
 
-  @Field(() => ID)
+  @Field(() => ID) // GraphQL
   get id(): string {
-    return this._id.toHexString()
+    return String(this._id)
   }
 
+  @CreateDateColumn({ type: 'timestamp' })
   @Field(() => Date)
-  @Column()
-  at: Date
+  createdAt: Date
 
   /** The e-mail address of the person (kept as text: the entry outlives the account) */
   @Field(() => String)
@@ -33,4 +32,9 @@ export class AuditEntry {
   @Field(() => String, { nullable: true })
   @Column({ nullable: true })
   detail: string | null
+
+  /** Set when the entry moved to cold storage (older than a year): see ColdStorageService */
+  @Field(() => Date, { nullable: true })
+  @Column({ nullable: true })
+  coldAt?: Date | null
 }

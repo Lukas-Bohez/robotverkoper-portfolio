@@ -2,7 +2,8 @@ import type { AddressInfo } from 'node:net'
 import { createClient, type Client } from 'graphql-ws'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { ADMIN, TECH, createTestApp, gql, type TestContext } from './utils/test-app.js'
-import { ADD_ACCOUNT, CREATE_PAIRING, CREATE_ROBOT, REPORT_DEFECT } from './utils/operations.js'
+import { CALL_TECHNICIAN, CLAIM_DEFECT, CREATE_PAIRING, REQUEST_HELP } from './utils/operations.js'
+import { addAccount, createRobot, OTHER_TECH, reportDefect } from './utils/helpers.js'
 
 let ctx: TestContext
 let url: string
@@ -51,7 +52,7 @@ beforeAll(async () => {
   url = `ws://127.0.0.1:${port}/graphql`
 })
 afterAll(async () => {
-  await Promise.all(clients.map(client => client.dispose()))
+  for (const client of clients) await client.dispose()
   await ctx.close()
 })
 beforeEach(() => ctx.reset())
@@ -67,15 +68,11 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
   })
 
   it('the defects screen hears that a defect was reported', async () => {
-    const created = await gql<{ createRobot: { robot: { id: string } } }>(ctx.app, CREATE_ROBOT, {
-      companyId: 'c-demo',
-      input: { name: 'Demo Food Bot', modelId: 'model-food' },
-    })
-    const robotId = created.data!.createRobot.robot.id
+    const robot = await createRobot(ctx)
     const event = await firstEvent<{ defectsChanged: { openDefects: number } }>(
       socket(ADMIN),
       'subscription { defectsChanged { openDefects } }',
-      () => gql(ctx.app, REPORT_DEFECT, { robotId, input: { summary: 'Sensor vast' } }),
+      () => reportDefect(ctx, robot.id),
     )
     expect(event.defectsChanged.openDefects).toBe(1)
   })
@@ -87,17 +84,71 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
   })
 
   it('a technician may follow the defects too', async () => {
-    await gql(ctx.app, ADD_ACCOUNT, { input: { email: TECH, role: 'TECHNICIAN' } })
-    const created = await gql<{ createRobot: { robot: { id: string } } }>(ctx.app, CREATE_ROBOT, {
-      companyId: 'c-demo',
-      input: { name: 'Demo Food Bot', modelId: 'model-food' },
-    })
-    const robotId = created.data!.createRobot.robot.id
+    await addAccount(ctx, TECH, 'technician')
+    const robot = await createRobot(ctx)
     const event = await firstEvent<{ defectsChanged: { openDefects: number } }>(
       socket(TECH),
       'subscription { defectsChanged { openDefects } }',
-      () => gql(ctx.app, REPORT_DEFECT, { robotId, input: { summary: 'Sensor vast' } }),
+      () => reportDefect(ctx, robot.id),
     )
     expect(event.defectsChanged.openDefects).toBe(1)
+  })
+
+  it('the detail of one defect follows that defect and no other', async () => {
+    await addAccount(ctx, TECH, 'technician')
+    const watched = await reportDefect(ctx, (await createRobot(ctx, 'Bot A')).id)
+    const other = await reportDefect(ctx, (await createRobot(ctx, 'Bot B')).id)
+    const query = `subscription { defectUpdated(defectId: "${watched.id}") { id status assignedTo } }`
+    const event = await firstEvent<{ defectUpdated: { id: string; status: string; assignedTo: string } }>(
+      socket(ADMIN),
+      query,
+      async () => {
+        // The other defect changes first: the screen of the watched one must not hear that
+        await gql(ctx.app, CLAIM_DEFECT, { id: other.id }, TECH)
+        await gql(ctx.app, CLAIM_DEFECT, { id: watched.id }, TECH)
+      },
+    )
+    expect(event.defectUpdated).toEqual({ id: watched.id, status: 'EN_ROUTE', assignedTo: TECH })
+  })
+
+  it('the dashboard of a technician hears when an administrator calls for a technician', async () => {
+    await addAccount(ctx, TECH, 'technician')
+    const robot = await createRobot(ctx, 'Food Robot 2')
+    const { id } = await reportDefect(ctx, robot.id, 'Robot staat scheef')
+    const event = await firstEvent<{
+      technicianCalled: { kind: string; defectId: string; robotName: string; companyName: string; requestedBy: string }
+    }>(
+      socket(TECH),
+      'subscription { technicianCalled { kind defectId robotName companyName summary hasCargo requestedBy } }',
+      () => gql(ctx.app, CALL_TECHNICIAN, { id }),
+    )
+    expect(event.technicianCalled).toMatchObject({
+      kind: 'CALL',
+      defectId: id,
+      robotName: 'Food Robot 2',
+      companyName: 'Demozaak',
+      requestedBy: ADMIN,
+    })
+  })
+
+  it('a call for help of a technician reaches the others', async () => {
+    await addAccount(ctx, TECH, 'technician')
+    await addAccount(ctx, OTHER_TECH, 'technician')
+    const { id } = await reportDefect(ctx, (await createRobot(ctx)).id)
+    await gql(ctx.app, CLAIM_DEFECT, { id }, TECH)
+    const event = await firstEvent<{ technicianCalled: { kind: string; requestedBy: string } }>(
+      socket(OTHER_TECH),
+      'subscription { technicianCalled { kind requestedBy } }',
+      () => gql(ctx.app, REQUEST_HELP, { id }, TECH),
+    )
+    expect(event.technicianCalled).toEqual({ kind: 'HELP', requestedBy: TECH })
+  })
+
+  it('someone who may not claim defects does not hear the calls', async () => {
+    await gql(ctx.app, 'mutation { createSellerRole(input: { key: "stagiair", names: { nl: "Stagiair" }, permissions: ["defects:read"] }) { id } }')
+    await addAccount(ctx, 'stagiair@fabrikant.example', 'stagiair')
+    await expect(
+      firstEvent(socket('stagiair@fabrikant.example'), 'subscription { technicianCalled { kind } }', async () => undefined),
+    ).rejects.toThrow()
   })
 })

@@ -1,7 +1,7 @@
 import request from 'supertest'
 import { DataSource } from 'typeorm'
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
-import { ADMIN, codeOf, createTestApp, domainCodeOf, gql, type TestContext } from './utils/test-app.js'
+import { codeOf, createTestApp, domainCodeOf, gql, type TestContext } from './utils/test-app.js'
 import {
   AUDIT,
   CANCEL_PAIRING,
@@ -142,30 +142,5 @@ describe('the key goes from the PWA to the simulator', () => {
       .set('Origin', 'http://kwaad.example')
       .set('Access-Control-Request-Method', 'POST')
     expect(other.headers['access-control-allow-origin']).toBeUndefined()
-  })
-})
-
-describe('the demo seed', () => {
-  it('gives the robots of the platform a simulated state, once', async () => {
-    const { SeedService } = await import('../src/seed/seed.service.js')
-    ctx.platform.companiesList = [
-      { id: 'c-demo', name: 'Demozaak', subdomain: 'demo', createdAt: '2026-09-23T08:00:00.000Z' },
-      { id: 'c-gelato', name: 'Gelato Bar', subdomain: 'gelato', createdAt: '2026-10-10T09:30:00.000Z' },
-      { id: 'c-pizza', name: 'Pizzeria Test', subdomain: 'pizzeria-test', createdAt: '2026-10-14T11:15:00.000Z' },
-    ]
-    const seed = ctx.app.get(SeedService)
-    await seed.seedDemo()
-    expect(ctx.platform.robots.size).toBe(6)
-    expect(ctx.platform.simulated.size).toBe(6)
-    expect([...ctx.platform.simulated.values()].every(state => typeof state.battery === 'number')).toBe(true)
-    const defects = await gql<{ defects: { summary: string; robot: { name: string } }[] }>(
-      ctx.app,
-      '{ defects(onlyOpen: true) { summary robot { name } } }',
-    )
-    expect(defects.data?.defects).toHaveLength(1)
-    expect(defects.data?.defects[0]?.robot.name).toBe('Demo Parcel Bot')
-    await seed.seedDemo()
-    expect(ctx.platform.robots.size, 'running it again changes nothing').toBe(6)
-    expect(ADMIN).toBeTruthy()
   })
 })

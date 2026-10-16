@@ -1,26 +1,21 @@
-import { Field, ID, ObjectType, registerEnumType } from '@nestjs/graphql'
-import { ObjectId } from 'mongodb'
+import { Field, ID, ObjectType } from '@nestjs/graphql'
 import { Column, Entity, ObjectIdColumn } from 'typeorm'
-
-export enum ModelKind {
-  FOOD = 'FOOD',
-  PARCEL = 'PARCEL',
-}
-registerEnumType(ModelKind, {
-  name: 'ModelKind',
-  description: 'FOOD: the insulated food robot. PARCEL: a robot with an ordinary compartment.',
-})
+import { ModelKind } from '../enums/model-kind.enum.js'
 
 /** What we build and sell: our own catalogue (no link with the models of the platform) */
 @Entity('robot_models')
 @ObjectType({ description: 'A kind of robot that we build' })
 export class RobotModel {
-  @ObjectIdColumn()
-  _id: ObjectId
+  @ObjectIdColumn() // Database link - TypeORM
+  _id: string
 
-  @Field(() => ID)
+  @Field(() => ID, { description: 'The key of the model in our catalogue, for example model-food' }) // GraphQL
+  get id(): string {
+    return this.key
+  }
+
   @Column()
-  id: string
+  key: string
 
   @Field(() => String)
   @Column()

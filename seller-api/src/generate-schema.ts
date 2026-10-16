@@ -4,6 +4,7 @@ import { NestFactory } from '@nestjs/core'
 import { GraphQLSchemaBuilderModule, GraphQLSchemaFactory } from '@nestjs/graphql'
 import { printSchema } from 'graphql'
 import { AccountsResolver } from './accounts/accounts.resolver.js'
+import { ArchiveResolver } from './archive/archive.resolver.js'
 import { AuditResolver } from './audit/audit.resolver.js'
 import { MeResolver } from './authentication/me.resolver.js'
 import { CompaniesResolver } from './companies/companies.resolver.js'
@@ -13,7 +14,9 @@ import { HealthResolver } from './health/health.resolver.js'
 import { PairingsResolver } from './pairings/pairings.resolver.js'
 import { RobotFieldsResolver } from './robots/robot-fields.resolver.js'
 import { RobotsResolver } from './robots/robots.resolver.js'
+import { RolePresetsResolver } from './role-presets/role-presets.resolver.js'
 import { RolesResolver } from './roles/roles.resolver.js'
+import { SellerRolesResolver } from './seller-roles/seller-roles.resolver.js'
 
 /**
  * Writes the GraphQL schema to dist/schema.gql WITHOUT starting the API or the database: the types package
@@ -29,13 +32,16 @@ const schema = await factory.create([
   HealthResolver,
   MeResolver,
   AccountsResolver,
+  SellerRolesResolver,
   AuditResolver,
+  ArchiveResolver,
   CompaniesResolver,
   RobotsResolver,
   RobotFieldsResolver,
   DefectsResolver,
   DefectFieldsResolver,
   RolesResolver,
+  RolePresetsResolver,
   PairingsResolver,
 ])
 await mkdir(dirname(OUT), { recursive: true })
