@@ -2,7 +2,24 @@
 
 Alles wat Lukas Bohez zelfstandig bouwt en bezit, in één map. **Deze map draait zonder de rest van het project**: ze heeft een eigen API, een eigen database en een eigen start. Van het platform van Maciej (de bedrijven, hun personeel en klanten, het menu, de bestellingen) staat hier niets, en ze gebruikt er niets van. Het platform wordt in de demo gespeeld door een **simulator**.
 
-Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md).
+Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md). **Wie wat doet, in één pagina: [`../docs/wie-doet-wat.md`](../docs/wie-doet-wat.md).**
+
+## Zo lees je dit deel, in deze volgorde
+
+Van de vraag van de klant tot het dossier. Elke stap verwijst naar de volgende.
+
+| Stap | Lees | Je ziet |
+| --- | --- | --- |
+| 1 | [`../docs/klantfeedback-129.md`](../docs/klantfeedback-129.md) | Wat de klant vroeg, en per wens wat er gedaan is en waar je het ziet |
+| 2 | [`design/README.md`](design/README.md) en het Figma-bestand | **Het ontwerp, eerst**: designsysteem, flow, 7 componenten, 10 schermen voor desktop en telefoon, donkere modus |
+| 3 | [`CONTRACT.md`](CONTRACT.md) | Wat gedeeld wordt met het platform van Maciej, en hoe de sleutel vanzelf naar de simulator gaat |
+| 4 | [`seller-api/README.md`](seller-api/README.md) en [`platform-simulator/README.md`](platform-simulator/README.md) | De API met eigen database, en het platform dat hij speelt |
+| 5 | [`seller-pwa/README.md`](seller-pwa/README.md) | De PWA die het ontwerp uit stap 2 bouwt |
+| 6 | [`simulator/README.md`](simulator/README.md) | De robot-app (Flutter) |
+| 7 | [`../docs/demo-draaiboek.md`](../docs/demo-draaiboek.md) (2a en 2c) | Alles starten en tonen, stap voor stap |
+| 8 | [Controleren](#controleren) | Tests en type-check |
+| 9 | [`../docs/wie-doet-wat.md`](../docs/wie-doet-wat.md) en [`../docs/bewijs-wie-schreef-wat-2026-10-15.md`](../docs/bewijs-wie-schreef-wat-2026-10-15.md) | Wie wat deed, met bewijs uit git |
+| 10 | [`../docs/dossier-lukas.md`](../docs/dossier-lukas.md) en het [projectdossier](../README.md#projectdossier) | De checklists van de leerkrachten, eerlijk ingevuld, met werktijd, succes en moeilijkheid |
 
 **Gebouwd naar de wensen van de klant** ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129)): een eigen PWA voor de robotverkoper, zonder personeel of klantgegevens, met defecten en vervangen, rollen van bedrijven, bekijken als rol, één geïsoleerde etenrobot en geen Google-login. Per wens staat in [`../docs/klantfeedback-129.md`](../docs/klantfeedback-129.md) wat er gedaan is en waar je het ziet.
 
@@ -28,6 +45,22 @@ Met één klik (Windows): bouw de exe eenmalig met `powershell -ExecutionPolicy 
 cd Lukas
 npm run dev          # installeert de pakketten als dat nodig is en start alles
 ```
+
+**In Docker** (de leerkrachten willen dat de applicatie in containers draait): alleen het deel van Lukas, zonder MongoDB en zonder de API van Maciej.
+
+```bash
+cd Lukas
+docker compose up --build        # platform-simulator, verkopers-API (SQLite in een volume) en de PWA
+docker compose down -v           # alles weer opruimen, ook de gegevens
+```
+
+Open <http://localhost:5174> en log in met `docent@howest.be` en een willekeurig wachtwoord (lokale demo-logins, geen Firebase nodig). Met echte Firebase-logins en de gebouwde PWA achter nginx:
+
+```bash
+docker compose --env-file seller-pwa/.env -f docker-compose.yml -f docker-compose.firebase.yml up --build
+```
+
+Zet dan `SELLER_ADMIN_EMAILS` op het e-mailadres van de eerste beheerder. De Windows- of gsm-simulator draait niet in Docker: die verbindt met `http://localhost:4100` en `http://localhost:4200`.
 
 | Wat | Adres |
 | --- | --- |
@@ -69,6 +102,6 @@ npm test             # platform-simulator + seller-api + seller-pwa
 npm run type-check
 ```
 
-Per onderdeel: `platform-simulator` 20 tests, `seller-api` 56 tests, `seller-pwa` 105 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
+Per onderdeel: `platform-simulator` 20 tests, `seller-api` 56 tests, `seller-pwa` 111 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
 
 Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](../docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.
