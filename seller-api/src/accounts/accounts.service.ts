@@ -33,8 +33,8 @@ export class AccountsService {
   /** The administrators of the settings are not in the database: they are shown as accounts all the same */
   private configured(known: Account[]): Account[] {
     return [...this.configuredAdmins]
-      .filter(email => !known.some(account => account.email === email))
-      .map(email =>
+      .filter((email) => !known.some((account) => account.email === email))
+      .map((email) =>
         Object.assign(new Account(), {
           _id: `settings-${email}`,
           email,
@@ -49,9 +49,7 @@ export class AccountsService {
   /** The accounts of the database and, above them, the administrators of the settings */
   async findAll(withDeleted = false): Promise<Account[]> {
     const stored = await this.repository.find({ withDeleted })
-    return [...this.configured(stored), ...stored].sort((a, b) =>
-      a.email.localeCompare(b.email),
-    )
+    return [...this.configured(stored), ...stored].sort((a, b) => a.email.localeCompare(b.email))
   }
 
   async add(actor: string, input: AddAccountInput): Promise<Account> {

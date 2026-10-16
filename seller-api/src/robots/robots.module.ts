@@ -11,11 +11,7 @@ import { RobotsResolver } from './robots.resolver.js'
 import { RobotsService } from './robots.service.js'
 
 @Module({
-  imports: [
-    TypeOrmModule.forFeature([Robot, RobotModel, Defect]),
-    CompaniesModule,
-    AuditModule,
-  ],
+  imports: [TypeOrmModule.forFeature([Robot, RobotModel, Defect]), CompaniesModule, AuditModule],
   providers: [
     RobotsService,
     RobotsResolver,

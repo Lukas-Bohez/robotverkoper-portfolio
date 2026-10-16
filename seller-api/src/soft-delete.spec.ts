@@ -4,7 +4,7 @@ import { describe, expect, it } from 'vitest'
 
 /** Every .ts file of src that is not a test */
 function sources(dir: string): string[] {
-  return readdirSync(dir).flatMap(name => {
+  return readdirSync(dir).flatMap((name) => {
     const path = join(dir, name)
     if (statSync(path).isDirectory()) return sources(path)
     return path.endsWith('.ts') && !path.endsWith('.spec.ts') ? [path] : []
@@ -23,13 +23,14 @@ const ALLOWED: Record<string, string> = {
 }
 
 // A call on the database: our own services have a remove() too, but that one is the soft delete
-const HARD_DELETE = /\.(deleteOne|deleteMany|dropDatabase|drop)\(|(repository|Repository|repo)\.(delete|remove)\(/
+const HARD_DELETE =
+  /\.(deleteOne|deleteMany|dropDatabase|drop)\(|(repository|Repository|repo)\.(delete|remove)\(/
 
 describe('soft delete everywhere', () => {
   const root = join(process.cwd(), 'src')
 
   it('only the places we decided on can delete for real', () => {
-    const found = sources(root).flatMap(file => {
+    const found = sources(root).flatMap((file) => {
       const lines = readFileSync(file, 'utf8').split('\n')
       const hits = lines.flatMap((line, index) =>
         !line.trim().startsWith('//') && !line.trim().startsWith('*') && HARD_DELETE.test(line)
@@ -38,7 +39,9 @@ describe('soft delete everywhere', () => {
       )
       return hits
     })
-    const unexpected = found.filter(hit => !Object.keys(ALLOWED).some(file => hit.startsWith(`${file}:`)))
+    const unexpected = found.filter(
+      (hit) => !Object.keys(ALLOWED).some((file) => hit.startsWith(`${file}:`)),
+    )
     expect(unexpected, 'a hard delete outside the allowed places').toEqual([])
   })
 

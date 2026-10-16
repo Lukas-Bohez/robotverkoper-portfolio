@@ -23,7 +23,9 @@ export class PairingsResolver {
   // The simulator is a device, not a person: it proves itself with a secret instead of a login
 
   @Public()
-  @Mutation(() => PairingTicket, { description: 'A simulator announces itself and waits for the key of a robot' })
+  @Mutation(() => PairingTicket, {
+    description: 'A simulator announces itself and waits for the key of a robot',
+  })
   createPairing(
     @FromThisComputer() fromThisComputer: boolean,
     @Args('input', { nullable: true }) input?: CreatePairingInput,
@@ -33,7 +35,8 @@ export class PairingsResolver {
 
   @Public()
   @Mutation(() => PairingCollection, {
-    description: 'The simulator asks if its key has arrived. The key comes once, then the pairing is gone.',
+    description:
+      'The simulator asks if its key has arrived. The key comes once, then the pairing is gone.',
   })
   collectPairing(
     @Args('id', { type: () => ID }) id: string,
@@ -68,7 +71,9 @@ export class PairingsResolver {
   }
 
   @RequirePermissions('robots:create')
-  @Mutation(() => Boolean, { description: 'Hands the key of a robot to a waiting simulator. Nothing of it is written down.' })
+  @Mutation(() => Boolean, {
+    description: 'Hands the key of a robot to a waiting simulator. Nothing of it is written down.',
+  })
   async deliverToSimulator(
     @CurrentCaller() caller: Caller,
     @Args('pairingId', { type: () => ID }) pairingId: string,

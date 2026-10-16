@@ -2,8 +2,7 @@ import { Field, InputType } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
 import { IsEmail, Length, Matches, MaxLength } from 'class-validator'
 
-const trim = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value)
 const lower = ({ value }: { value: unknown }) =>
   typeof value === 'string' ? value.trim().toLowerCase() : value
 

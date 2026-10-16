@@ -15,7 +15,13 @@ describe('the rights of our own staff', () => {
   it('has 18 standard rights, none twice, in five groups', () => {
     expect(SELLER_PERMISSIONS).toHaveLength(18)
     expect(new Set(SELLER_PERMISSIONS).size).toBe(SELLER_PERMISSIONS.length)
-    expect(Object.keys(SELLER_PERMISSION_GROUPS)).toEqual(['companies', 'robots', 'defects', 'team', 'archive'])
+    expect(Object.keys(SELLER_PERMISSION_GROUPS)).toEqual([
+      'companies',
+      'robots',
+      'defects',
+      'team',
+      'archive',
+    ])
   })
 
   it('every right is written as area:action', () => {
@@ -36,24 +42,31 @@ describe('the rights of our own staff', () => {
 })
 
 describe('extra claims', () => {
-  it.each(['exports:invoices', 'a:b', 'area-1:do-it', 'x9:y9'])('accepts %s', claim => {
+  it.each(['exports:invoices', 'a:b', 'area-1:do-it', 'x9:y9'])('accepts %s', (claim) => {
     expect(claim).toMatch(EXTRA_CLAIM)
   })
 
-  it.each(['exports', ':invoices', 'exports:', 'Exports:Invoices', 'exports:invoices:all', 'ex ports:x', '1x:y', 'x:1y', ''])(
-    'refuses %j',
-    claim => {
-      expect(claim).not.toMatch(EXTRA_CLAIM)
-    },
-  )
+  it.each([
+    'exports',
+    ':invoices',
+    'exports:',
+    'Exports:Invoices',
+    'exports:invoices:all',
+    'ex ports:x',
+    '1x:y',
+    'x:1y',
+    '',
+  ])('refuses %j', (claim) => {
+    expect(claim).not.toMatch(EXTRA_CLAIM)
+  })
 })
 
 describe('the roles a fresh database starts with', () => {
-  const admin = DEFAULT_ROLES.find(role => role.key === ADMIN_ROLE_KEY)!
-  const technician = DEFAULT_ROLES.find(role => role.key === TECHNICIAN_ROLE_KEY)!
+  const admin = DEFAULT_ROLES.find((role) => role.key === ADMIN_ROLE_KEY)!
+  const technician = DEFAULT_ROLES.find((role) => role.key === TECHNICIAN_ROLE_KEY)!
 
   it('are the administrator and the technician', () => {
-    expect(DEFAULT_ROLES.map(role => role.key)).toEqual(['admin', 'technician'])
+    expect(DEFAULT_ROLES.map((role) => role.key)).toEqual(['admin', 'technician'])
   })
 
   it('the administrator is locked and holds every right', () => {
@@ -67,7 +80,14 @@ describe('the roles a fresh database starts with', () => {
     expect(technician.permissions).toEqual(
       expect.arrayContaining(['defects:read', 'defects:claim', 'defects:close', 'robots:replace']),
     )
-    for (const forbidden of ['accounts:manage', 'roles:manage', 'audit:read', 'archive:restore', 'companies:create', 'defects:call']) {
+    for (const forbidden of [
+      'accounts:manage',
+      'roles:manage',
+      'audit:read',
+      'archive:restore',
+      'companies:create',
+      'defects:call',
+    ]) {
       expect(technician.permissions, forbidden).not.toContain(forbidden)
     }
   })

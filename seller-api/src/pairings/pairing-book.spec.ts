@@ -9,7 +9,11 @@ describe('PairingBook', () => {
     expect(book.waiting()).toHaveLength(1)
     expect(book.collect(id, secret)).toEqual({ status: 'waiting' })
 
-    book.deliver(id, { apiKey: 'rb_abc', robotName: 'Food Robot 2', platformUrl: 'http://x/graphql' })
+    book.deliver(id, {
+      apiKey: 'rb_abc',
+      robotName: 'Food Robot 2',
+      platformUrl: 'http://x/graphql',
+    })
     expect(book.waiting(), 'a simulator that got its key no longer waits').toHaveLength(0)
     expect(book.collect(id, secret)).toEqual({
       status: 'delivered',
@@ -17,7 +21,9 @@ describe('PairingBook', () => {
       robotName: 'Food Robot 2',
       platformUrl: 'http://x/graphql',
     })
-    expect(() => book.collect(id, secret)).toThrow(expect.objectContaining({ code: 'pairing_not_found' }))
+    expect(() => book.collect(id, secret)).toThrow(
+      expect.objectContaining({ code: 'pairing_not_found' }),
+    )
   })
 
   it('only the simulator with the secret can collect, and nobody delivers twice', () => {
@@ -25,9 +31,9 @@ describe('PairingBook', () => {
     const { id, secret } = book.create('Pixel', false)
     expect(() => book.collect(id, 'fout')).toThrow(expect.objectContaining({ code: 'forbidden' }))
     book.deliver(id, { apiKey: 'rb_abc', robotName: 'A', platformUrl: 'u' })
-    expect(() => book.deliver(id, { apiKey: 'rb_other', robotName: 'B', platformUrl: 'u' })).toThrow(
-      expect.objectContaining({ code: 'pairing_taken' }),
-    )
+    expect(() =>
+      book.deliver(id, { apiKey: 'rb_other', robotName: 'B', platformUrl: 'u' }),
+    ).toThrow(expect.objectContaining({ code: 'pairing_taken' }))
     expect((book.collect(id, secret) as { apiKey: string }).apiKey).toBe('rb_abc')
     expect(() => book.deliver('nope', { apiKey: 'x', robotName: 'x', platformUrl: 'u' })).toThrow(
       expect.objectContaining({ code: 'pairing_not_found' }),
@@ -47,14 +53,18 @@ describe('PairingBook', () => {
     expect(book.waiting()).toHaveLength(1)
     clock = 1100
     expect(book.waiting()).toHaveLength(0)
-    expect(() => book.collect(a.id, a.secret)).toThrow(expect.objectContaining({ code: 'pairing_not_found' }))
+    expect(() => book.collect(a.id, a.secret)).toThrow(
+      expect.objectContaining({ code: 'pairing_not_found' }),
+    )
   })
 
   it('stops a simulator that keeps asking for pairings', () => {
     const book = new PairingBook({ max: 2 })
     book.create('A', true)
     book.create('B', true)
-    expect(() => book.create('C', true)).toThrow(expect.objectContaining({ code: 'too_many_pairings' }))
+    expect(() => book.create('C', true)).toThrow(
+      expect.objectContaining({ code: 'too_many_pairings' }),
+    )
   })
 
   it('cancelling needs the secret', () => {

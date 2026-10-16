@@ -3,8 +3,7 @@ import { Transform } from 'class-transformer'
 import { IsEnum, IsIn, IsOptional, Length } from 'class-validator'
 import { DefectResolution, DefectSeverity } from '../enums/defect.enums.js'
 
-const trim = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value)
 
 @InputType()
 export class ReportDefectInput {
@@ -33,7 +32,8 @@ export class ReplaceRobotInput {
 
   @Field(() => String, {
     nullable: true,
-    description: 'Default: the name of the old robot (a new robot made without a code gets "(vervanger)")',
+    description:
+      'Default: the name of the old robot (a new robot made without a code gets "(vervanger)")',
   })
   @Transform(trim)
   @IsOptional()

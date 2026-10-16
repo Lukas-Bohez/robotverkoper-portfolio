@@ -10,7 +10,7 @@ import type { SellerRole } from './entities/seller-role.entity.js'
 function serviceWith(roles: Partial<SellerRole>[], accountsInUse = 0) {
   const repository = {
     findOne: vi.fn(({ where }: { where: { key?: string } }) =>
-      Promise.resolve(roles.find(role => role.key === where.key) ?? null),
+      Promise.resolve(roles.find((role) => role.key === where.key) ?? null),
     ),
     save: vi.fn((role: SellerRole) => Promise.resolve(role)),
     softRemove: vi.fn((role: SellerRole) => Promise.resolve(role)),
@@ -29,7 +29,11 @@ function serviceWith(roles: Partial<SellerRole>[], accountsInUse = 0) {
 }
 
 describe('SellerRolesService.permissionsOf', () => {
-  const technician = { key: 'technician', locked: false, permissions: ['defects:read', 'exports:invoices'] }
+  const technician = {
+    key: 'technician',
+    locked: false,
+    permissions: ['defects:read', 'exports:invoices'],
+  }
 
   it('is empty for nobody and for a role that does not exist (or was archived)', async () => {
     const { service } = serviceWith([technician])
@@ -81,7 +85,9 @@ describe('SellerRolesService checks', () => {
 
   it('needs a name in at least one language and drops the empty ones', () => {
     expect(service.checkNames({ nl: ' Helpdesk ', en: '', fr: null })).toEqual({ nl: 'Helpdesk' })
-    expect(() => service.checkNames({ nl: '  ' })).toThrow(expect.objectContaining({ code: 'invalid_names' }))
+    expect(() => service.checkNames({ nl: '  ' })).toThrow(
+      expect.objectContaining({ code: 'invalid_names' }),
+    )
   })
 })
 
@@ -102,13 +108,17 @@ describe('archiving a role is a soft delete', () => {
     const { service, repository } = serviceWith([role])
     vi.spyOn(service, 'findOne').mockResolvedValue({ ...role, id: 'r1' } as never)
     await service.remove('docent@howest.be', 'r1')
-    expect(repository.save).toHaveBeenCalledWith(expect.objectContaining({ deletedBy: 'docent@howest.be' }))
+    expect(repository.save).toHaveBeenCalledWith(
+      expect.objectContaining({ deletedBy: 'docent@howest.be' }),
+    )
   })
 
   it('is blocked while someone has the role, and nothing is changed then', async () => {
     const { service, repository } = serviceWith([role], 2)
     vi.spyOn(service, 'findOne').mockResolvedValue({ ...role, id: 'r1' } as never)
-    await expect(service.remove('docent@howest.be', 'r1')).rejects.toMatchObject({ code: 'role_in_use' })
+    await expect(service.remove('docent@howest.be', 'r1')).rejects.toMatchObject({
+      code: 'role_in_use',
+    })
     expect(repository.softRemove).not.toHaveBeenCalled()
     expect(repository.save).not.toHaveBeenCalled()
   })
@@ -116,7 +126,9 @@ describe('archiving a role is a soft delete', () => {
   it('never archives the locked administrator role', async () => {
     const { service, repository } = serviceWith([])
     vi.spyOn(service, 'findOne').mockResolvedValue({ key: 'admin', locked: true } as never)
-    await expect(service.remove('docent@howest.be', 'r1')).rejects.toMatchObject({ code: 'role_locked' })
+    await expect(service.remove('docent@howest.be', 'r1')).rejects.toMatchObject({
+      code: 'role_locked',
+    })
     expect(repository.softRemove).not.toHaveBeenCalled()
   })
 })

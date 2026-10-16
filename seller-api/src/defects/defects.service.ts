@@ -126,7 +126,7 @@ export class DefectsService {
       withDeleted,
       order: { createdAt: 'DESC' },
     })
-    return statuses ? found.filter(defect => statuses.includes(this.getStatus(defect))) : found
+    return statuses ? found.filter((defect) => statuses.includes(this.getStatus(defect))) : found
   }
 
   /** The defects with one of these statuses (the status is worked out, so this filters after loading) */
@@ -158,8 +158,8 @@ export class DefectsService {
     if (!origin) return []
     const others = await this.findAll({ onlyOpen: true })
     return others
-      .filter(other => other.id !== defect.id)
-      .flatMap(other => {
+      .filter((other) => other.id !== defect.id)
+      .flatMap((other) => {
         const distanceMeters = this.distanceFrom(other, origin)
         return distanceMeters !== null && distanceMeters <= radiusMeters
           ? [{ defect: other, distanceMeters }]
@@ -208,7 +208,12 @@ export class DefectsService {
         coldAt: null,
       }),
     )
-    await this.audit.record(actor, 'defect.reported', robot.platformId, `${robot.name}: ${input.summary}`)
+    await this.audit.record(
+      actor,
+      'defect.reported',
+      robot.platformId,
+      `${robot.name}: ${input.summary}`,
+    )
     await this.announce(saved)
     return saved
   }
@@ -226,7 +231,11 @@ export class DefectsService {
   async claim(actor: string, id: string): Promise<Defect> {
     const defect = await this.openOne(id)
     if (defect.assignedTo && defect.assignedTo !== actor) {
-      throw new DomainException(409, 'defect_claimed', 'Another technician already took this defect')
+      throw new DomainException(
+        409,
+        'defect_claimed',
+        'Another technician already took this defect',
+      )
     }
     if (!defect.claimedAt) {
       defect.assignedTo = actor
@@ -274,9 +283,13 @@ export class DefectsService {
     if (!defect.onSiteAt) {
       throw new DomainException(409, 'not_on_site', 'Say that you arrived first')
     }
-    const unknown = done.filter(item => !(CHECKLIST_ITEMS as readonly string[]).includes(item))
+    const unknown = done.filter((item) => !(CHECKLIST_ITEMS as readonly string[]).includes(item))
     if (unknown.length > 0) {
-      throw new DomainException(400, 'invalid_checklist', `Not an item of the check: ${unknown.join(', ')}`)
+      throw new DomainException(
+        400,
+        'invalid_checklist',
+        `Not an item of the check: ${unknown.join(', ')}`,
+      )
     }
     defect.checklistDone = [...new Set(done)]
     await this.repository.save(defect)
@@ -315,7 +328,12 @@ export class DefectsService {
     // A false alarm has no food to take out: the robot was fine
     if (input.resolution !== DefectResolution.FALSE_ALARM) this.requireCargoRemoved(defect)
     const closed = await this.resolve(actor, defect, input.resolution, input.note ?? null, null)
-    await this.audit.record(actor, 'defect.closed', defect.robotId, `${input.resolution}${input.note ? `: ${input.note}` : ''}`)
+    await this.audit.record(
+      actor,
+      'defect.closed',
+      defect.robotId,
+      `${input.resolution}${input.note ? `: ${input.note}` : ''}`,
+    )
     await this.announce(closed)
     return closed
   }
@@ -329,7 +347,13 @@ export class DefectsService {
     const created = input.code
       ? await this.robots.replaceWithStock(actor, old, input.code, input.name)
       : await this.robots.replace(actor, old, input.name ?? `${old.name} (vervanger)`)
-    const replaced = await this.resolve(actor, defect, DefectResolution.REPLACED, null, created.robot.id)
+    const replaced = await this.resolve(
+      actor,
+      defect,
+      DefectResolution.REPLACED,
+      null,
+      created.robot.id,
+    )
     await this.announce(replaced)
     return { defect: replaced, robot: created.robot, apiKey: created.apiKey }
   }
@@ -378,7 +402,11 @@ export class DefectsService {
     const defect = await this.findOne(id)
     const status = this.getStatus(defect)
     if (status !== DefectStatusType.CLOSED && status !== DefectStatusType.REPLACED) {
-      throw new DomainException(409, 'defect_not_resolved', 'Only a resolved defect can be archived')
+      throw new DomainException(
+        409,
+        'defect_not_resolved',
+        'Only a resolved defect can be archived',
+      )
     }
     defect.deletedBy = actor
     await this.repository.save(defect)

@@ -53,7 +53,7 @@ export class CompaniesService {
       const companies = await this.platform.listCompanies()
       for (const company of companies) await this.upsert(company)
       await this.repository.deleteMany({
-        platformId: { $nin: companies.map(company => company.id) },
+        platformId: { $nin: companies.map((company) => company.id) },
       })
       return PlatformSource.PLATFORM
     } catch (error) {
@@ -78,8 +78,8 @@ export class CompaniesService {
         ])
         .toArray(),
     ])
-    const robotCount = new Map(robots.map(row => [row._id, row.n]))
-    const openDefects = new Map(defects.map(row => [row._id, row.n]))
+    const robotCount = new Map(robots.map((row) => [row._id, row.n]))
+    const openDefects = new Map(defects.map((row) => [row._id, row.n]))
     for (const company of companies) {
       company.robotCount = robotCount.get(company.platformId) ?? 0
       company.openDefects = openDefects.get(company.platformId) ?? 0

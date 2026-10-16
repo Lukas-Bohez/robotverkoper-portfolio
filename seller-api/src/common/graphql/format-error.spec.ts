@@ -11,8 +11,14 @@ const format = (original: Error) => {
 
 describe('the codes of an error', () => {
   it('gives a domain error the code of its status and its own stable domainCode', () => {
-    const formatted = format(new DomainException(409, 'defect_claimed', 'Another technician already took this defect'))
-    expect(formatted.extensions).toMatchObject({ code: 'CONFLICT', status: 409, domainCode: 'defect_claimed' })
+    const formatted = format(
+      new DomainException(409, 'defect_claimed', 'Another technician already took this defect'),
+    )
+    expect(formatted.extensions).toMatchObject({
+      code: 'CONFLICT',
+      status: 409,
+      domainCode: 'defect_claimed',
+    })
   })
 
   it.each([
@@ -43,9 +49,14 @@ describe('the codes of an error', () => {
   })
 
   it('gives errors of a subscription the same codes', () => {
-    const error = new GraphQLError('no', { originalError: new DomainException(403, 'no_access', 'no') })
+    const error = new GraphQLError('no', {
+      originalError: new DomainException(403, 'no_access', 'no'),
+    })
     const result = withErrorCodes({ errors: [error] })
-    expect(result.errors?.[0]?.extensions).toMatchObject({ code: 'FORBIDDEN', domainCode: 'no_access' })
+    expect(result.errors?.[0]?.extensions).toMatchObject({
+      code: 'FORBIDDEN',
+      domainCode: 'no_access',
+    })
     expect(withErrorCodes({ data: { a: 1 } })).toEqual({ data: { a: 1 } })
   })
 })

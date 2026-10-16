@@ -6,7 +6,8 @@ export enum PairingStatus {
 }
 registerEnumType(PairingStatus, {
   name: 'PairingStatus',
-  description: 'WAITING: nobody has given this simulator a key yet. DELIVERED: here is the key (you get it once).',
+  description:
+    'WAITING: nobody has given this simulator a key yet. DELIVERED: here is the key (you get it once).',
 })
 
 @ObjectType({ description: 'A simulator that waits for the key of a robot (never its secret)' })
@@ -14,10 +15,14 @@ export class WaitingPairing {
   @Field(() => ID)
   id: string
 
-  @Field(() => String, { description: 'What the device calls itself, for example Windows-simulator' })
+  @Field(() => String, {
+    description: 'What the device calls itself, for example Windows-simulator',
+  })
   device: string
 
-  @Field(() => String, { description: 'A short code the seller sees next to the device, to be sure it is the right one' })
+  @Field(() => String, {
+    description: 'A short code the seller sees next to the device, to be sure it is the right one',
+  })
   code: string
 
   @Field(() => Boolean, { description: 'The simulator runs on the same computer as this API' })
@@ -27,7 +32,10 @@ export class WaitingPairing {
   createdAt: Date
 }
 
-@ObjectType({ description: 'What a simulator gets when it announces itself: keep the secret, it proves who asked' })
+@ObjectType({
+  description:
+    'What a simulator gets when it announces itself: keep the secret, it proves who asked',
+})
 export class PairingTicket {
   @Field(() => ID)
   id: string

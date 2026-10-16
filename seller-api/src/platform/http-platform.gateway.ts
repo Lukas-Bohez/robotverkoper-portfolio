@@ -49,7 +49,11 @@ export class HttpPlatformGateway extends PlatformGateway {
     }
     if (response.ok) return payload as T
     if (response.status >= 500 || response.status === 401 || response.status === 403) {
-      throw new DomainException(502, 'platform_unavailable', 'The platform refused or failed the request')
+      throw new DomainException(
+        502,
+        'platform_unavailable',
+        'The platform refused or failed the request',
+      )
     }
     // The platform says no (taken subdomain, unknown permission, ...): pass its answer on
     const error = (payload ?? {}) as { code?: unknown; message?: unknown }
@@ -62,11 +66,24 @@ export class HttpPlatformGateway extends PlatformGateway {
 
   async listCompanies(): Promise<PlatformCompany[]> {
     const companies = await this.call<PlatformCompany[]>('GET', '/companies')
-    return companies.map(({ id, name, subdomain, createdAt }) => ({ id, name, subdomain, createdAt }))
+    return companies.map(({ id, name, subdomain, createdAt }) => ({
+      id,
+      name,
+      subdomain,
+      createdAt,
+    }))
   }
 
-  async createCompany(input: { name: string; subdomain: string; adminEmail: string }): Promise<PlatformCompany> {
-    const { id, name, subdomain, createdAt } = await this.call<PlatformCompany>('POST', '/companies', input)
+  async createCompany(input: {
+    name: string
+    subdomain: string
+    adminEmail: string
+  }): Promise<PlatformCompany> {
+    const { id, name, subdomain, createdAt } = await this.call<PlatformCompany>(
+      'POST',
+      '/companies',
+      input,
+    )
     return { id, name, subdomain, createdAt }
   }
 
@@ -75,7 +92,7 @@ export class HttpPlatformGateway extends PlatformGateway {
       'GET',
       `/companies/${encodeURIComponent(companyId)}/roles${withArchived ? '?withArchived=true' : ''}`,
     )
-    return roles.map(role => this.role(role))
+    return roles.map((role) => this.role(role))
   }
 
   /** A platform that does not know names per language or archiving still answers with the same shape */
@@ -154,7 +171,10 @@ export class HttpPlatformGateway extends PlatformGateway {
     await this.call('PUT', `/robots/${encodeURIComponent(robotId)}/condition`, condition)
   }
 
-  async simulateTelemetry(robotId: string, state: { online: boolean; battery: number }): Promise<void> {
+  async simulateTelemetry(
+    robotId: string,
+    state: { online: boolean; battery: number },
+  ): Promise<void> {
     await this.call('POST', `/robots/${encodeURIComponent(robotId)}/telemetry`, state)
   }
 

@@ -22,7 +22,8 @@ export class RolesResolver {
   @RequirePermissions('company-roles:manage')
   @Query(() => [CompanyRole], {
     name: 'companyRoles',
-    description: 'The roles of a company, with the permissions of each. Archived roles only when asked for.',
+    description:
+      'The roles of a company, with the permissions of each. Archived roles only when asked for.',
   })
   findAll(
     @Args('companyId', { type: () => ID }) companyId: string,
@@ -42,7 +43,9 @@ export class RolesResolver {
   }
 
   @RequirePermissions('company-roles:manage')
-  @Mutation(() => CompanyRole, { description: 'Changes the name (per language) and the rights of a role' })
+  @Mutation(() => CompanyRole, {
+    description: 'Changes the name (per language) and the rights of a role',
+  })
   updateCompanyRole(
     @CurrentCaller() caller: Caller,
     @Args('companyId', { type: () => ID }) companyId: string,

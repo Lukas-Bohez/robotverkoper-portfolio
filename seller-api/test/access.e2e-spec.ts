@@ -57,26 +57,45 @@ describe('who may do what', () => {
   })
 
   it('someone who is not on our staff is told there is no access', async () => {
-    const me = await gql<{ me: { role: unknown; permissions: string[] } }>(ctx.app, ME, {}, 'vreemde@example.com')
+    const me = await gql<{ me: { role: unknown; permissions: string[] } }>(
+      ctx.app,
+      ME,
+      {},
+      'vreemde@example.com',
+    )
     expect(me.data?.me).toEqual({ email: 'vreemde@example.com', role: null, permissions: [] })
     expect(codeOf(await gql(ctx.app, COMPANIES, {}, 'vreemde@example.com'))).toBe('FORBIDDEN')
   })
 
-  it.each([ADMIN, OWNER])('%s is a superadmin: every permission, without needing an account first', async email => {
-    const me = await gql<{ me: { role: { key: string; name: string }; permissions: string[] } }>(ctx.app, ME, {}, email)
-    expect(me.data?.me.role).toEqual({ key: 'admin', name: 'Beheerder' })
-    expect(me.data?.me.permissions).toHaveLength(SELLER_PERMISSIONS.length)
-    for (const query of [COMPANIES, ACCOUNTS, AUDIT]) {
-      expect((await gql(ctx.app, query, {}, email)).errors).toBeUndefined()
-    }
-    const created = await gql(
-      ctx.app,
-      CREATE_COMPANY,
-      { input: { name: 'Nieuwe Zaak', subdomain: `zaak-${email.length}`, adminEmail: 'baas@nieuwe-zaak.be' } },
-      email,
-    )
-    expect(created.errors).toBeUndefined()
-  })
+  it.each([ADMIN, OWNER])(
+    '%s is a superadmin: every permission, without needing an account first',
+    async (email) => {
+      const me = await gql<{ me: { role: { key: string; name: string }; permissions: string[] } }>(
+        ctx.app,
+        ME,
+        {},
+        email,
+      )
+      expect(me.data?.me.role).toEqual({ key: 'admin', name: 'Beheerder' })
+      expect(me.data?.me.permissions).toHaveLength(SELLER_PERMISSIONS.length)
+      for (const query of [COMPANIES, ACCOUNTS, AUDIT]) {
+        expect((await gql(ctx.app, query, {}, email)).errors).toBeUndefined()
+      }
+      const created = await gql(
+        ctx.app,
+        CREATE_COMPANY,
+        {
+          input: {
+            name: 'Nieuwe Zaak',
+            subdomain: `zaak-${email.length}`,
+            adminEmail: 'baas@nieuwe-zaak.be',
+          },
+        },
+        email,
+      )
+      expect(created.errors).toBeUndefined()
+    },
+  )
 
   it('matches an address in any letter case', async () => {
     const me = await gql<{ me: { role: { key: string } } }>(ctx.app, ME, {}, 'LukasBohez@Gmail.com')
@@ -94,7 +113,9 @@ describe('who may do what', () => {
       TECH,
     )
     expect(codeOf(create)).toBe('FORBIDDEN')
-    expect(codeOf(await gql(ctx.app, '{ companyRoles(companyId: "c-demo") { id } }', {}, TECH))).toBe('FORBIDDEN')
+    expect(
+      codeOf(await gql(ctx.app, '{ companyRoles(companyId: "c-demo") { id } }', {}, TECH)),
+    ).toBe('FORBIDDEN')
     expect(codeOf(await gql(ctx.app, ACCOUNTS, {}, TECH))).toBe('FORBIDDEN')
     expect(codeOf(await gql(ctx.app, AUDIT, {}, TECH))).toBe('FORBIDDEN')
     expect(codeOf(await gql(ctx.app, SELLER_ROLES, {}, TECH))).toBe('FORBIDDEN')
@@ -111,8 +132,13 @@ describe('who may do what', () => {
     await addAccount(ctx, TECH, 'technician')
     expect(codeOf(await gql(ctx.app, AUDIT, {}, TECH))).toBe('FORBIDDEN')
 
-    const roles = (await gql<{ sellerRoles: { id: string; key: string; permissions: string[] }[] }>(ctx.app, SELLER_ROLES)).data!.sellerRoles
-    const technician = roles.find(role => role.key === 'technician')!
+    const roles = (
+      await gql<{ sellerRoles: { id: string; key: string; permissions: string[] }[] }>(
+        ctx.app,
+        SELLER_ROLES,
+      )
+    ).data!.sellerRoles
+    const technician = roles.find((role) => role.key === 'technician')!
     const updated = await gql(ctx.app, UPDATE_SELLER_ROLE, {
       id: technician.id,
       input: { permissions: [...technician.permissions, 'audit:read'] },
@@ -153,7 +179,8 @@ interface Field {
   type: IntrospectedType
 }
 
-const TYPE_REF = 'kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } }'
+const TYPE_REF =
+  'kind name ofType { kind name ofType { kind name ofType { kind name ofType { kind name } } } }'
 const INTROSPECTION = `{ __schema {
   queryType { fields { name args { name type { ${TYPE_REF} } } type { ${TYPE_REF} } } }
   mutationType { fields { name args { name type { ${TYPE_REF} } } type { ${TYPE_REF} } } }
@@ -168,7 +195,12 @@ describe('the auth matrix', () => {
   type Schema = {
     queryType: { fields: Field[] }
     mutationType: { fields: Field[] }
-    types: { kind: string; name: string; inputFields: Arg[] | null; enumValues: { name: string }[] | null }[]
+    types: {
+      kind: string
+      name: string
+      inputFields: Arg[] | null
+      enumValues: { name: string }[] | null
+    }[]
   }
   let schema: Schema
 
@@ -182,10 +214,13 @@ describe('the auth matrix', () => {
   const valueFor = (type: IntrospectedType): unknown => {
     if (type.kind === 'NON_NULL') return valueFor(type.ofType!)
     if (type.kind === 'LIST') return [valueFor(type.ofType!)]
-    if (type.kind === 'ENUM') return schema.types.find(t => t.name === type.name)?.enumValues?.[0]?.name
+    if (type.kind === 'ENUM')
+      return schema.types.find((t) => t.name === type.name)?.enumValues?.[0]?.name
     if (type.kind === 'INPUT_OBJECT') {
-      const input = schema.types.find(t => t.name === type.name)
-      return Object.fromEntries((input?.inputFields ?? []).map(field => [field.name, valueFor(field.type)]))
+      const input = schema.types.find((t) => t.name === type.name)
+      return Object.fromEntries(
+        (input?.inputFields ?? []).map((field) => [field.name, valueFor(field.type)]),
+      )
     }
     if (type.name === 'Boolean') return true
     if (type.name === 'Int') return 1
@@ -195,9 +230,9 @@ describe('the auth matrix', () => {
 
   /** `query { name(arg: $arg) { __typename } }` with a made-up value for every argument */
   const operation = (kind: 'query' | 'mutation', field: Field) => {
-    const variables = Object.fromEntries(field.args.map(arg => [arg.name, valueFor(arg.type)]))
-    const declared = field.args.map(arg => `$${arg.name}: ${typeName(arg.type)}`).join(', ')
-    const used = field.args.map(arg => `${arg.name}: $${arg.name}`).join(', ')
+    const variables = Object.fromEntries(field.args.map((arg) => [arg.name, valueFor(arg.type)]))
+    const declared = field.args.map((arg) => `$${arg.name}: ${typeName(arg.type)}`).join(', ')
+    const used = field.args.map((arg) => `${arg.name}: $${arg.name}`).join(', ')
     const leaf = unwrap(field.type)
     const selection = ['OBJECT', 'INTERFACE'].includes(leaf.kind) ? ' { __typename }' : ''
     return {
@@ -213,8 +248,8 @@ describe('the auth matrix', () => {
         : type.name!
 
   const operations = (): { kind: 'query' | 'mutation'; field: Field }[] => [
-    ...schema.queryType.fields.map(field => ({ kind: 'query' as const, field })),
-    ...schema.mutationType.fields.map(field => ({ kind: 'mutation' as const, field })),
+    ...schema.queryType.fields.map((field) => ({ kind: 'query' as const, field })),
+    ...schema.mutationType.fields.map((field) => ({ kind: 'mutation' as const, field })),
   ]
 
   it('finds the operations of the schema', () => {
@@ -244,7 +279,9 @@ describe('the auth matrix', () => {
       if (!PUBLIC.has(field.name)) continue
       const { query, variables } = operation(kind, field)
       const response = await gql(ctx.app, query, variables, null)
-      expect(['UNAUTHENTICATED', 'FORBIDDEN'], `${kind} ${field.name}`).not.toContain(codeOf(response))
+      expect(['UNAUTHENTICATED', 'FORBIDDEN'], `${kind} ${field.name}`).not.toContain(
+        codeOf(response),
+      )
     }
   })
 })

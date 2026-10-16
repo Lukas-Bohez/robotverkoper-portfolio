@@ -3,13 +3,17 @@ import { ArchiveKind } from '../enums/archive-kind.enum.js'
 
 @ObjectType({ description: 'Something that was archived instead of deleted, and can be restored' })
 export class ArchivedItem {
-  @Field(() => ID, { description: 'What restoreArchived needs: an e-mail address for an account, else the id' })
+  @Field(() => ID, {
+    description: 'What restoreArchived needs: an e-mail address for an account, else the id',
+  })
   id: string
 
   @Field(() => ArchiveKind)
   kind: ArchiveKind
 
-  @Field(() => String, { description: 'What the person recognises it by: an address, a name, a robot' })
+  @Field(() => String, {
+    description: 'What the person recognises it by: an address, a name, a robot',
+  })
   label: string
 
   @Field(() => String, { nullable: true })

@@ -54,23 +54,23 @@ export class DatabaseVersionService {
       .collection<AppliedMigration>(MIGRATIONS_COLLECTION)
       .find({}, { projection: { _id: 1 } })
       .toArray()
-    return new Set(docs.map(doc => doc._id))
+    return new Set(docs.map((doc) => doc._id))
   }
 
   async status(): Promise<DatabaseStatus> {
-    return this.withDb(async db => {
+    return this.withDb(async (db) => {
       const applied = await this.appliedIds(db)
       return {
         current: applied.size === 0 ? 0 : Math.max(...applied),
         expected: this.expectedVersion(),
-        pending: migrations.filter(migration => !applied.has(migration.id)),
+        pending: migrations.filter((migration) => !applied.has(migration.id)),
       }
     })
   }
 
   /** Applies every pending migration and records it. Safe to call again: then there is nothing left to do. */
   async migrate(): Promise<Migration[]> {
-    return this.withDb(async db => {
+    return this.withDb(async (db) => {
       const applied = await this.appliedIds(db)
       const current = applied.size === 0 ? 0 : Math.max(...applied)
       if (current > this.expectedVersion()) {
@@ -79,15 +79,23 @@ export class DatabaseVersionService {
             `${this.expectedVersion()}. Update the code (git pull) before running it against this database.`,
         )
       }
-      const pending = migrations.filter(migration => !applied.has(migration.id))
+      const pending = migrations.filter((migration) => !applied.has(migration.id))
       for (const migration of pending) {
         this.logger.log(`Applying migration ${migration.id}: ${migration.description}`)
         await migration.up(db)
-        await db.collection<AppliedMigration>(MIGRATIONS_COLLECTION).updateOne(
-          { _id: migration.id },
-          { $setOnInsert: { _id: migration.id, description: migration.description, appliedAt: new Date() } },
-          { upsert: true },
-        )
+        await db
+          .collection<AppliedMigration>(MIGRATIONS_COLLECTION)
+          .updateOne(
+            { _id: migration.id },
+            {
+              $setOnInsert: {
+                _id: migration.id,
+                description: migration.description,
+                appliedAt: new Date(),
+              },
+            },
+            { upsert: true },
+          )
       }
       return pending
     })
@@ -95,6 +103,6 @@ export class DatabaseVersionService {
 
   /** Drops the whole database. Development only: only the explicit `db:reset` command calls it. */
   async reset(): Promise<void> {
-    await this.withDb(db => db.dropDatabase())
+    await this.withDb((db) => db.dropDatabase())
   }
 }

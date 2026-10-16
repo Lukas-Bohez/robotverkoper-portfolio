@@ -69,7 +69,9 @@ export async function addStockRobot(
   serial = 'RBT-000417',
   modelId = 'model-food',
 ): Promise<void> {
-  await ctx.app.get(RobotsService).addToStock('test', { name: `Reserve ${serial}`, modelId, serial })
+  await ctx.app
+    .get(RobotsService)
+    .addToStock('test', { name: `Reserve ${serial}`, modelId, serial })
 }
 
 /** What the platform knows about the condition of a robot: cargo, tilt, a place (the demo and the tests) */
@@ -93,7 +95,12 @@ export const NEARBY = {
   longitude: 3.265,
   latitude: 50.8293,
 }
-export const FAR = { country: 'BE', address: 'Grote Markt 1, Gent', longitude: 3.7248, latitude: 51.0543 }
+export const FAR = {
+  country: 'BE',
+  address: 'Grote Markt 1, Gent',
+  longitude: 3.7248,
+  latitude: 51.0543,
+}
 
 /**
  * A defect from the past, written straight into the database with old dates (the API only makes defects of now).
@@ -134,7 +141,11 @@ export async function insertOldDefect(
 }
 
 /** A line of the log from the past */
-export async function insertOldAuditEntry(ctx: TestContext, createdAt: string, action = 'robot.created'): Promise<void> {
+export async function insertOldAuditEntry(
+  ctx: TestContext,
+  createdAt: string,
+  action = 'robot.created',
+): Promise<void> {
   const mongo = ctx.app.get(DataSource).mongoManager
   await mongo.getMongoRepository('audit').insertOne({
     createdAt: new Date(createdAt),

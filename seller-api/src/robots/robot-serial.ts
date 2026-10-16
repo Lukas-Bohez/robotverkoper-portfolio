@@ -29,7 +29,11 @@ export function qrPayload(serial: string): string {
 export function parseRobotCode(code: string): string {
   const cleaned = code.trim().replace(/^rbt:/i, '').trim().toUpperCase()
   if (!SERIAL.test(cleaned)) {
-    throw new DomainException(400, 'invalid_robot_code', 'This is not the code of one of our robots')
+    throw new DomainException(
+      400,
+      'invalid_robot_code',
+      'This is not the code of one of our robots',
+    )
   }
   return cleaned
 }

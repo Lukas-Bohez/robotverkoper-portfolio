@@ -18,7 +18,8 @@ export class RolePresetsResolver {
   @RequirePermissions('company-roles:manage')
   @Query(() => [RolePreset], {
     name: 'rolePresets',
-    description: 'The roles that can be reused at other companies. Archived ones only when asked for.',
+    description:
+      'The roles that can be reused at other companies. Archived ones only when asked for.',
   })
   findAll(
     @Args('withDeleted', { defaultValue: false }) withDeleted: boolean,
@@ -66,7 +67,9 @@ export class RolePresetsResolver {
   }
 
   @RequirePermissions('company-roles:manage')
-  @Mutation(() => RolePreset, { description: 'Archives a preset (soft delete): it can be restored' })
+  @Mutation(() => RolePreset, {
+    description: 'Archives a preset (soft delete): it can be restored',
+  })
   removeRolePreset(
     @CurrentCaller() caller: Caller,
     @Args('id', { type: () => ID }) id: string,
@@ -83,7 +86,9 @@ export class RolePresetsResolver {
     return this.presets.restore(caller.email, id)
   }
 
-  @ResolveField(() => String, { description: 'The name in the language that is asked for (falls back to English)' })
+  @ResolveField(() => String, {
+    description: 'The name in the language that is asked for (falls back to English)',
+  })
   name(
     @Parent() preset: RolePreset,
     @Args('language', { type: () => String, nullable: true }) language?: string,

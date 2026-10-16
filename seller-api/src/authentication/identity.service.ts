@@ -25,7 +25,11 @@ export class IdentityService {
     if (this.config.authMode === 'dev') {
       const match = DEV_TOKEN.exec(token)
       if (!match?.[1]) {
-        throw new DomainException(401, 'invalid_token', 'A dev token looks like dev:name@example.com')
+        throw new DomainException(
+          401,
+          'invalid_token',
+          'A dev token looks like dev:name@example.com',
+        )
       }
       const email = match[1].toLowerCase()
       return { uid: `dev-${email}`, email }

@@ -15,15 +15,13 @@ import { RobotsService } from './robots.service.js'
 export class RobotModelsLoader {
   private readonly loader: DataLoader<string, RobotModel | null>
 
-  constructor(
-    @InjectRepository(RobotModel) repository: MongoRepository<RobotModel>,
-  ) {
-    this.loader = new DataLoader(async keys => {
+  constructor(@InjectRepository(RobotModel) repository: MongoRepository<RobotModel>) {
+    this.loader = new DataLoader(async (keys) => {
       const found = await repository.find({
         where: { key: { $in: [...keys] } } as never,
       })
-      const byKey = new Map(found.map(model => [model.key, model]))
-      return keys.map(key => byKey.get(key) ?? null)
+      const byKey = new Map(found.map((model) => [model.key, model]))
+      return keys.map((key) => byKey.get(key) ?? null)
     })
   }
 
@@ -42,11 +40,11 @@ export class RobotConditionsLoader {
 
   constructor(robots: RobotsService) {
     this.loader = new DataLoader(
-      async batch => {
+      async (batch) => {
         const conditions = await robots.conditionsOf([...batch])
-        return batch.map(robot => conditions.get(robot.id) ?? null)
+        return batch.map((robot) => conditions.get(robot.id) ?? null)
       },
-      { cacheKeyFn: robot => robot.id },
+      { cacheKeyFn: (robot) => robot.id },
     )
   }
 

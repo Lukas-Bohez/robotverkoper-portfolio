@@ -18,13 +18,7 @@ import { Defect } from './entities/defect.entity.js'
     CompaniesModule,
     AuditModule,
   ],
-  providers: [
-    DefectsService,
-    DefectsResolver,
-    DefectFieldsResolver,
-    RobotsLoader,
-    CompaniesLoader,
-  ],
+  providers: [DefectsService, DefectsResolver, DefectFieldsResolver, RobotsLoader, CompaniesLoader],
   exports: [DefectsService],
 })
 export class DefectsModule {}

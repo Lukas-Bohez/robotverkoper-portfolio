@@ -1,13 +1,5 @@
 import { Inject } from '@nestjs/common'
-import {
-  Args,
-  ID,
-  Int,
-  Mutation,
-  Query,
-  Resolver,
-  Subscription,
-} from '@nestjs/graphql'
+import { Args, ID, Int, Mutation, Query, Resolver, Subscription } from '@nestjs/graphql'
 import type { PubSub } from 'graphql-subscriptions'
 import { CurrentCaller, RequirePermissions } from '../authentication/decorators.js'
 import type { Caller } from '../authentication/request.js'
@@ -18,11 +10,7 @@ import {
   DefectsService,
   TECHNICIAN_CALLED,
 } from './defects.service.js'
-import {
-  CloseDefectInput,
-  ReplaceRobotInput,
-  ReportDefectInput,
-} from './dto/defect.inputs.js'
+import { CloseDefectInput, ReplaceRobotInput, ReportDefectInput } from './dto/defect.inputs.js'
 import { Defect } from './entities/defect.entity.js'
 import { DefectStatusType } from './enums/defect.enums.js'
 import {
@@ -102,7 +90,9 @@ export class DefectsResolver {
   // ---- mutations ----
 
   @RequirePermissions('defects:report')
-  @Mutation(() => Defect, { description: 'Reports a defect of a robot, with the condition of the robot at that moment' })
+  @Mutation(() => Defect, {
+    description: 'Reports a defect of a robot, with the condition of the robot at that moment',
+  })
   reportDefect(
     @CurrentCaller() caller: Caller,
     @Args('robotId', { type: () => ID }) robotId: string,
@@ -112,7 +102,9 @@ export class DefectsResolver {
   }
 
   @RequirePermissions('defects:claim')
-  @Mutation(() => Defect, { description: '"Ik ga erheen": a technician takes the defect (more than one is fine)' })
+  @Mutation(() => Defect, {
+    description: '"Ik ga erheen": a technician takes the defect (more than one is fine)',
+  })
   claimDefect(
     @CurrentCaller() caller: Caller,
     @Args('id', { type: () => ID }) id: string,
@@ -172,7 +164,9 @@ export class DefectsResolver {
   }
 
   @RequirePermissions('defects:call')
-  @Mutation(() => Defect, { description: 'Calls for a technician (the way they are reached does not matter)' })
+  @Mutation(() => Defect, {
+    description: 'Calls for a technician (the way they are reached does not matter)',
+  })
   callTechnician(
     @CurrentCaller() caller: Caller,
     @Args('id', { type: () => ID }) id: string,
@@ -181,7 +175,9 @@ export class DefectsResolver {
   }
 
   @RequirePermissions('defects:claim')
-  @Mutation(() => Defect, { description: 'A technician asks a colleague or the administrator for help' })
+  @Mutation(() => Defect, {
+    description: 'A technician asks a colleague or the administrator for help',
+  })
   requestHelp(
     @CurrentCaller() caller: Caller,
     @Args('id', { type: () => ID }) id: string,
@@ -190,7 +186,9 @@ export class DefectsResolver {
   }
 
   @RequirePermissions('defects:close')
-  @Mutation(() => Defect, { description: 'Archives a resolved defect (soft delete): it can be restored' })
+  @Mutation(() => Defect, {
+    description: 'Archives a resolved defect (soft delete): it can be restored',
+  })
   removeDefect(
     @CurrentCaller() caller: Caller,
     @Args('id', { type: () => ID }) id: string,
@@ -220,10 +218,8 @@ export class DefectsResolver {
   @RequirePermissions('defects:read')
   @Subscription(() => Defect, {
     name: DEFECT_UPDATED,
-    filter: (
-      payload: { [DEFECT_UPDATED]: Defect },
-      variables: { defectId: string },
-    ) => payload[DEFECT_UPDATED].id === variables.defectId,
+    filter: (payload: { [DEFECT_UPDATED]: Defect }, variables: { defectId: string }) =>
+      payload[DEFECT_UPDATED].id === variables.defectId,
   })
   defectUpdated(
     // The argument is only for the filter above, but GraphQL needs it declared

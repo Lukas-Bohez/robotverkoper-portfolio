@@ -8,13 +8,20 @@ import type { Migration } from '../migration.interface.js'
  */
 const migration: Migration = {
   id: 4,
-  description: 'Defects: the status is worked out; condition, place, technician, safety check and soft delete',
+  description:
+    'Defects: the status is worked out; condition, place, technician, safety check and soft delete',
   async up(db) {
     const defects = db.collection('defects')
 
     // How it was resolved: the old status said it
-    await defects.updateMany({ status: 'closed', resolution: { $exists: false } }, { $set: { resolution: 'repaired' } })
-    await defects.updateMany({ status: 'replaced', resolution: { $exists: false } }, { $set: { resolution: 'replaced' } })
+    await defects.updateMany(
+      { status: 'closed', resolution: { $exists: false } },
+      { $set: { resolution: 'repaired' } },
+    )
+    await defects.updateMany(
+      { status: 'replaced', resolution: { $exists: false } },
+      { $set: { resolution: 'replaced' } },
+    )
 
     // The fields that are new: nobody took the old defects, and nobody knows more about them
     const empty = {

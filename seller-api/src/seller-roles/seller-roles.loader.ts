@@ -13,16 +13,14 @@ import { SellerRole } from './entities/seller-role.entity.js'
 export class SellerRolesLoader {
   private readonly loader: DataLoader<string, SellerRole | null>
 
-  constructor(
-    @InjectRepository(SellerRole) repository: MongoRepository<SellerRole>,
-  ) {
-    this.loader = new DataLoader(async keys => {
+  constructor(@InjectRepository(SellerRole) repository: MongoRepository<SellerRole>) {
+    this.loader = new DataLoader(async (keys) => {
       const found = await repository.find({
         where: { key: { $in: [...keys] } } as never,
         withDeleted: true,
       })
-      const byKey = new Map(found.map(role => [role.key, role]))
-      return keys.map(key => byKey.get(key) ?? null)
+      const byKey = new Map(found.map((role) => [role.key, role]))
+      return keys.map((key) => byKey.get(key) ?? null)
     })
   }
 

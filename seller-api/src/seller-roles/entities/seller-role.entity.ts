@@ -15,7 +15,9 @@ import { LocalizedNames } from '../../entities/localized-names.entity.js'
  * `name` is a field of the resolver (it depends on the language that is asked), so it is not declared here.
  */
 @Entity('seller_roles')
-@ObjectType({ description: 'A role of someone who works at the robot seller, with the rights it holds' })
+@ObjectType({
+  description: 'A role of someone who works at the robot seller, with the rights it holds',
+})
 export class SellerRole {
   @ObjectIdColumn() // Database link - TypeORM
   _id: string
@@ -29,7 +31,9 @@ export class SellerRole {
   @Column()
   key: string
 
-  @Field(() => LocalizedNames, { description: 'The name in every language (a missing language falls back)' })
+  @Field(() => LocalizedNames, {
+    description: 'The name in every language (a missing language falls back)',
+  })
   @Column({ type: 'simple-json' })
   names: LocalizedNames
 
@@ -37,7 +41,9 @@ export class SellerRole {
   @Column()
   permissions: string[]
 
-  @Field(() => Boolean, { description: 'The administrator role is locked: it always holds every right' })
+  @Field(() => Boolean, {
+    description: 'The administrator role is locked: it always holds every right',
+  })
   @Column()
   locked: boolean
 

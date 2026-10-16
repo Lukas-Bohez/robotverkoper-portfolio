@@ -28,12 +28,12 @@ function firstEvent<T>(client: Client, query: string, trigger: () => Promise<unk
     client.subscribe<T>(
       { query },
       {
-        next: result => {
+        next: (result) => {
           clearTimeout(timer)
           if (result.errors?.length) reject(new Error(result.errors[0]?.message))
           else resolve(result.data as T)
         },
-        error: error => {
+        error: (error) => {
           clearTimeout(timer)
           reject(error instanceof Error ? error : new Error('refused'))
         },
@@ -64,7 +64,9 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
       'subscription { waitingPairingsChanged { id device code } }',
       () => gql(ctx.app, CREATE_PAIRING, { input: { device: 'Pixel-simulator' } }, null),
     )
-    expect(event.waitingPairingsChanged.map(pairing => pairing.device)).toEqual(['Pixel-simulator'])
+    expect(event.waitingPairingsChanged.map((pairing) => pairing.device)).toEqual([
+      'Pixel-simulator',
+    ])
   })
 
   it('the defects screen hears that a defect was reported', async () => {
@@ -80,7 +82,9 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
   it('refuses a subscription without a login, and one from someone who is not on our staff', async () => {
     const query = 'subscription { defectsChanged { openDefects } }'
     await expect(firstEvent(socket(null), query, async () => undefined)).rejects.toThrow()
-    await expect(firstEvent(socket('vreemde@example.com'), query, async () => undefined)).rejects.toThrow()
+    await expect(
+      firstEvent(socket('vreemde@example.com'), query, async () => undefined),
+    ).rejects.toThrow()
   })
 
   it('a technician may follow the defects too', async () => {
@@ -99,15 +103,13 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
     const watched = await reportDefect(ctx, (await createRobot(ctx, 'Bot A')).id)
     const other = await reportDefect(ctx, (await createRobot(ctx, 'Bot B')).id)
     const query = `subscription { defectUpdated(defectId: "${watched.id}") { id status assignedTo } }`
-    const event = await firstEvent<{ defectUpdated: { id: string; status: string; assignedTo: string } }>(
-      socket(ADMIN),
-      query,
-      async () => {
-        // The other defect changes first: the screen of the watched one must not hear that
-        await gql(ctx.app, CLAIM_DEFECT, { id: other.id }, TECH)
-        await gql(ctx.app, CLAIM_DEFECT, { id: watched.id }, TECH)
-      },
-    )
+    const event = await firstEvent<{
+      defectUpdated: { id: string; status: string; assignedTo: string }
+    }>(socket(ADMIN), query, async () => {
+      // The other defect changes first: the screen of the watched one must not hear that
+      await gql(ctx.app, CLAIM_DEFECT, { id: other.id }, TECH)
+      await gql(ctx.app, CLAIM_DEFECT, { id: watched.id }, TECH)
+    })
     expect(event.defectUpdated).toEqual({ id: watched.id, status: 'EN_ROUTE', assignedTo: TECH })
   })
 
@@ -116,7 +118,13 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
     const robot = await createRobot(ctx, 'Food Robot 2')
     const { id } = await reportDefect(ctx, robot.id, 'Robot staat scheef')
     const event = await firstEvent<{
-      technicianCalled: { kind: string; defectId: string; robotName: string; companyName: string; requestedBy: string }
+      technicianCalled: {
+        kind: string
+        defectId: string
+        robotName: string
+        companyName: string
+        requestedBy: string
+      }
     }>(
       socket(TECH),
       'subscription { technicianCalled { kind defectId robotName companyName summary hasCargo requestedBy } }',
@@ -145,10 +153,17 @@ describe('realtime (GraphQL subscriptions over a websocket)', () => {
   })
 
   it('someone who may not claim defects does not hear the calls', async () => {
-    await gql(ctx.app, 'mutation { createSellerRole(input: { key: "stagiair", names: { nl: "Stagiair" }, permissions: ["defects:read"] }) { id } }')
+    await gql(
+      ctx.app,
+      'mutation { createSellerRole(input: { key: "stagiair", names: { nl: "Stagiair" }, permissions: ["defects:read"] }) { id } }',
+    )
     await addAccount(ctx, 'stagiair@fabrikant.example', 'stagiair')
     await expect(
-      firstEvent(socket('stagiair@fabrikant.example'), 'subscription { technicianCalled { kind } }', async () => undefined),
+      firstEvent(
+        socket('stagiair@fabrikant.example'),
+        'subscription { technicianCalled { kind } }',
+        async () => undefined,
+      ),
     ).rejects.toThrow()
   })
 })

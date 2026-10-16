@@ -30,14 +30,12 @@ export class SellerRolesService {
 
   /** The standard permissions with their group (the rows of the table) */
   catalog(): PermissionInfo[] {
-    return SELLER_PERMISSIONS.map(key => ({ key, group: groupOf(key) }))
+    return SELLER_PERMISSIONS.map((key) => ({ key, group: groupOf(key) }))
   }
 
   async findAll(withDeleted = false): Promise<SellerRole[]> {
     const roles = await this.repository.find({ withDeleted })
-    return roles.sort(
-      (a, b) => Number(b.locked) - Number(a.locked) || a.key.localeCompare(b.key),
-    )
+    return roles.sort((a, b) => Number(b.locked) - Number(a.locked) || a.key.localeCompare(b.key))
   }
 
   /** One role by its id; an archived role only when asked for */
@@ -90,7 +88,7 @@ export class SellerRolesService {
   /** A standard permission or an extra claim (area:action); anything else is a mistake */
   checkPermissions(permissions: string[]): string[] {
     const unknown = permissions.filter(
-      key => !isStandardPermission(key) && !EXTRA_CLAIM.test(key),
+      (key) => !isStandardPermission(key) && !EXTRA_CLAIM.test(key),
     )
     if (unknown.length > 0) {
       throw new DomainException(
@@ -105,7 +103,7 @@ export class SellerRolesService {
   /** At least one language needs a name; empty languages are left out (they fall back) */
   checkNames(names: LocalizedNames): LocalizedNames {
     const given = LANGUAGES.filter(
-      code => typeof names[code] === 'string' && names[code]!.trim() !== '',
+      (code) => typeof names[code] === 'string' && names[code]!.trim() !== '',
     )
     if (given.length === 0) {
       throw new DomainException(
@@ -114,9 +112,7 @@ export class SellerRolesService {
         'Give the role a name in at least one language',
       )
     }
-    return Object.fromEntries(
-      given.map(code => [code, names[code]!.trim()]),
-    ) as LocalizedNames
+    return Object.fromEntries(given.map((code) => [code, names[code]!.trim()])) as LocalizedNames
   }
 
   async create(actor: string, input: CreateSellerRoleInput): Promise<SellerRole> {

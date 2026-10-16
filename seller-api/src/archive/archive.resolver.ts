@@ -16,7 +16,8 @@ export class ArchiveResolver {
   @RequirePermissions('archive:read')
   @Query(() => [ArchivedItem], {
     name: 'archive',
-    description: 'Everything that was archived (soft delete), newest first. Filter by kind and by the year it was archived.',
+    description:
+      'Everything that was archived (soft delete), newest first. Filter by kind and by the year it was archived.',
   })
   list(
     @Args('kind', { type: () => ArchiveKind, nullable: true }) kind?: ArchiveKind,
@@ -43,7 +44,8 @@ export class ArchiveResolver {
 
   @RequirePermissions('archive:restore')
   @Mutation(() => ColdStorageResult, {
-    description: 'Moves resolved defects and log lines older than a number of months to cold storage',
+    description:
+      'Moves resolved defects and log lines older than a number of months to cold storage',
   })
   async moveToColdStorage(
     @Args('months', { type: () => Int, defaultValue: COLD_AFTER_MONTHS }) months: number,

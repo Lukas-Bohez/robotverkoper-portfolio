@@ -35,12 +35,60 @@ const VELD = place('Veldstraat 12, Kortrijk', 3.2605, 50.8299)
  * simulated platform shows until a real robot app reports itself. `serial` is the number on the QR code.
  */
 export const DEMO_ROBOTS = [
-  { company: 'demo', name: 'Demo Food Bot', serial: 'RBT-000211', model: 'model-food', online: true, battery: 87, place: MARKSE },
-  { company: 'demo', name: 'Food Robot 2', serial: 'RBT-000212', model: 'model-food', online: true, battery: 41, place: MARKSE },
-  { company: 'demo', name: 'Demo Parcel Bot', serial: 'RBT-000213', model: 'model-parcel', online: true, battery: 12, place: MARKSE_60 },
-  { company: 'gelato', name: 'Robot Gelato 1', serial: 'RBT-000301', model: 'model-food', online: true, battery: 64, place: VELD },
-  { company: 'gelato', name: 'Robot Gelato 2', serial: 'RBT-000302', model: 'model-food', online: false, battery: 41, place: VELD },
-  { company: 'pizzeria-test', name: 'Pizza Bot 1', serial: 'RBT-000401', model: 'model-food', online: false, battery: 100, place: MARKSE },
+  {
+    company: 'demo',
+    name: 'Demo Food Bot',
+    serial: 'RBT-000211',
+    model: 'model-food',
+    online: true,
+    battery: 87,
+    place: MARKSE,
+  },
+  {
+    company: 'demo',
+    name: 'Food Robot 2',
+    serial: 'RBT-000212',
+    model: 'model-food',
+    online: true,
+    battery: 41,
+    place: MARKSE,
+  },
+  {
+    company: 'demo',
+    name: 'Demo Parcel Bot',
+    serial: 'RBT-000213',
+    model: 'model-parcel',
+    online: true,
+    battery: 12,
+    place: MARKSE_60,
+  },
+  {
+    company: 'gelato',
+    name: 'Robot Gelato 1',
+    serial: 'RBT-000301',
+    model: 'model-food',
+    online: true,
+    battery: 64,
+    place: VELD,
+  },
+  {
+    company: 'gelato',
+    name: 'Robot Gelato 2',
+    serial: 'RBT-000302',
+    model: 'model-food',
+    online: false,
+    battery: 41,
+    place: VELD,
+  },
+  {
+    company: 'pizzeria-test',
+    name: 'Pizza Bot 1',
+    serial: 'RBT-000401',
+    model: 'model-food',
+    online: false,
+    battery: 100,
+    place: MARKSE,
+  },
 ]
 
 /** Robots in the warehouse: ready to be scanned by a technician who replaces a defective robot */
@@ -85,7 +133,11 @@ export const DEMO_CONDITIONS: Record<string, Record<string, unknown>> = {
 
 /** The defects of the demo: three robots that do not work. The first has food inside and stands crooked. */
 export const DEMO_DEFECTS = [
-  { robot: 'Food Robot 2', summary: 'Robot staat scheef en de linkerwielmotor blokkeert', severity: 'high' as const },
+  {
+    robot: 'Food Robot 2',
+    summary: 'Robot staat scheef en de linkerwielmotor blokkeert',
+    severity: 'high' as const,
+  },
   { robot: 'Demo Parcel Bot', summary: 'Batterij valt snel leeg', severity: 'medium' as const },
   { robot: 'Robot Gelato 1', summary: 'Sensor vast', severity: 'low' as const },
 ]
@@ -120,7 +172,15 @@ export const EXTRA_SELLER_ROLES: { key: string; names: LocalizedNames; permissio
   {
     key: 'helpdesk',
     names: { nl: 'Helpdesk', en: 'Helpdesk', fr: 'Assistance', de: 'Helpdesk' },
-    permissions: ['companies:read', 'robots:read', 'defects:read', 'defects:report', 'audit:read', 'archive:read', 'exports:invoices'],
+    permissions: [
+      'companies:read',
+      'robots:read',
+      'defects:read',
+      'defects:report',
+      'audit:read',
+      'archive:read',
+      'exports:invoices',
+    ],
   },
   {
     key: 'stagiair',

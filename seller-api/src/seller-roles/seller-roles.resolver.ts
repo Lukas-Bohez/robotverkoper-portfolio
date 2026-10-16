@@ -1,12 +1,4 @@
-import {
-  Args,
-  ID,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, ID, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import {
   CurrentCaller,
   RequireAnyPermission,
@@ -14,10 +6,7 @@ import {
 } from '../authentication/decorators.js'
 import type { Caller } from '../authentication/request.js'
 import { localizedName } from '../entities/localized-names.entity.js'
-import {
-  CreateSellerRoleInput,
-  UpdateSellerRoleInput,
-} from './dto/seller-role.inputs.js'
+import { CreateSellerRoleInput, UpdateSellerRoleInput } from './dto/seller-role.inputs.js'
 import { PermissionInfo, SellerRole } from './entities/seller-role.entity.js'
 import { SellerRolesService } from './seller-roles.service.js'
 

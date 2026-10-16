@@ -104,13 +104,13 @@ export class ArchiveService {
     }
 
     return items
-      .filter(item => !year || item.archivedAt.getUTCFullYear() === year)
+      .filter((item) => !year || item.archivedAt.getUTCFullYear() === year)
       .sort((a, b) => b.archivedAt.getTime() - a.archivedAt.getTime())
   }
 
   /** Brings something back from the archive, whatever it is */
   async restore(actor: string, kind: ArchiveKind, id: string): Promise<ArchivedItem> {
-    const before = (await this.list(kind)).find(item => item.id === id)
+    const before = (await this.list(kind)).find((item) => item.id === id)
     if (!before) throw new DomainException(404, 'archived_not_found', 'This is not in the archive')
     switch (kind) {
       case ArchiveKind.ACCOUNT:

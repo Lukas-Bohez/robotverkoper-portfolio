@@ -3,7 +3,11 @@ import { AuditService } from '../audit/audit.service.js'
 import { COMPANY_PERMISSIONS } from '../authentication/permissions.js'
 import { DomainException } from '../common/domain-exception.js'
 import { CompaniesService } from '../companies/companies.service.js'
-import { LANGUAGES, type Language, type LocalizedNames } from '../entities/localized-names.entity.js'
+import {
+  LANGUAGES,
+  type Language,
+  type LocalizedNames,
+} from '../entities/localized-names.entity.js'
 import type { PlatformRole, RoleInput } from '../platform/platform.gateway.js'
 import { PlatformGateway } from '../platform/platform.gateway.js'
 import type { CompanyRole, RoleCopyResult } from './company-role.model.js'
@@ -44,10 +48,14 @@ export class RolesService {
 
   private checkPermissions(permissions: string[]): string[] {
     const unknown = permissions.filter(
-      key => !(COMPANY_PERMISSIONS as readonly string[]).includes(key),
+      (key) => !(COMPANY_PERMISSIONS as readonly string[]).includes(key),
     )
     if (unknown.length > 0) {
-      throw new DomainException(400, 'unknown_permission', `Unknown permission: ${unknown.join(', ')}`)
+      throw new DomainException(
+        400,
+        'unknown_permission',
+        `Unknown permission: ${unknown.join(', ')}`,
+      )
     }
     return [...new Set(permissions)]
   }
@@ -55,7 +63,7 @@ export class RolesService {
   /** Only the languages that have a name; the Dutch name is always there (it is the name of the role) */
   private checkNames(name: string, names: LocalizedNames | undefined): LocalizedNames {
     const given: Partial<Record<Language, string>> = Object.fromEntries(
-      LANGUAGES.flatMap(code => {
+      LANGUAGES.flatMap((code) => {
         const value = names?.[code]
         return typeof value === 'string' && value.trim() !== '' ? [[code, value.trim()]] : []
       }),
@@ -74,7 +82,12 @@ export class RolesService {
       names: this.checkNames(input.name, input.names),
       permissions: this.checkPermissions(input.permissions),
     })
-    await this.audit.record(actor, 'company-role.created', companyId, `${company.name}: ${role.name}`)
+    await this.audit.record(
+      actor,
+      'company-role.created',
+      companyId,
+      `${company.name}: ${role.name}`,
+    )
     return toModel(role)
   }
 
@@ -92,16 +105,30 @@ export class RolesService {
     const patch: Partial<RoleInput> = {}
     if (input.name) patch.name = input.name
     if (input.names || input.name) {
-      patch.names = this.checkNames(input.name ?? existing.name, input.names ?? existing.names ?? undefined)
+      patch.names = this.checkNames(
+        input.name ?? existing.name,
+        input.names ?? existing.names ?? undefined,
+      )
     }
     if (input.permissions) patch.permissions = this.checkPermissions(input.permissions)
     const role = await this.platform.updateRole(companyId, roleId, patch)
-    await this.audit.record(actor, 'company-role.updated', companyId, `${company.name}: ${role.name}`)
+    await this.audit.record(
+      actor,
+      'company-role.updated',
+      companyId,
+      `${company.name}: ${role.name}`,
+    )
     return toModel(role)
   }
 
-  private async find(companyId: string, roleId: string, withArchived = false): Promise<PlatformRole> {
-    const role = (await this.platform.listRoles(companyId, withArchived)).find(item => item.id === roleId)
+  private async find(
+    companyId: string,
+    roleId: string,
+    withArchived = false,
+  ): Promise<PlatformRole> {
+    const role = (await this.platform.listRoles(companyId, withArchived)).find(
+      (item) => item.id === roleId,
+    )
     if (!role) throw new DomainException(404, 'role_not_found', 'This role does not exist')
     return role
   }
@@ -114,7 +141,12 @@ export class RolesService {
       throw new DomainException(409, 'role_locked', 'The administrator role cannot be archived')
     }
     const archived = await this.platform.archiveRole(companyId, roleId)
-    await this.audit.record(actor, 'company-role.archived', companyId, `${company.name}: ${role.name}`)
+    await this.audit.record(
+      actor,
+      'company-role.archived',
+      companyId,
+      `${company.name}: ${role.name}`,
+    )
     return toModel(archived)
   }
 
@@ -125,7 +157,12 @@ export class RolesService {
       throw new DomainException(409, 'not_archived', 'This role is not archived')
     }
     const restored = await this.platform.restoreRole(companyId, roleId)
-    await this.audit.record(actor, 'company-role.restored', companyId, `${company.name}: ${role.name}`)
+    await this.audit.record(
+      actor,
+      'company-role.restored',
+      companyId,
+      `${company.name}: ${role.name}`,
+    )
     return toModel(restored)
   }
 
@@ -142,7 +179,7 @@ export class RolesService {
     for (const targetId of new Set(targetCompanyIds)) {
       const company = await this.companies.findOne(targetId)
       const existing = await this.platform.listRoles(targetId, true)
-      if (existing.some(role => role.name.toLowerCase() === source.name.toLowerCase())) {
+      if (existing.some((role) => role.name.toLowerCase() === source.name.toLowerCase())) {
         result.skipped.push(`${company.name}: ${source.name}`)
         continue
       }
@@ -152,7 +189,12 @@ export class RolesService {
         permissions: this.checkPermissions(source.permissions),
       })
       result.copied++
-      await this.audit.record(actor, 'company-role.copied', targetId, `${company.name}: ${source.name}`)
+      await this.audit.record(
+        actor,
+        'company-role.copied',
+        targetId,
+        `${company.name}: ${source.name}`,
+      )
     }
     return result
   }
@@ -165,6 +207,10 @@ export class RolesService {
   ): Promise<RoleCopyResult> {
     await this.companies.findOne(companyId, true)
     const role = await this.find(companyId, roleId)
-    return this.copyTo(actor, role, targetCompanyIds.filter(id => id !== companyId))
+    return this.copyTo(
+      actor,
+      role,
+      targetCompanyIds.filter((id) => id !== companyId),
+    )
   }
 }

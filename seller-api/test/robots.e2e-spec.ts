@@ -1,6 +1,14 @@
 import { afterAll, beforeAll, beforeEach, describe, expect, it } from 'vitest'
 import { DataSource } from 'typeorm'
-import { ADMIN, TECH, codeOf, createTestApp, domainCodeOf, gql, type TestContext } from './utils/test-app.js'
+import {
+  ADMIN,
+  TECH,
+  codeOf,
+  createTestApp,
+  domainCodeOf,
+  gql,
+  type TestContext,
+} from './utils/test-app.js'
 import {
   AUDIT,
   COMPANIES,
@@ -13,7 +21,13 @@ import {
   ROBOT_MODELS,
   STOCK_ROBOTS,
 } from './utils/operations.js'
-import { addAccount, addStockRobot, createRobot, reportDefect, setCondition } from './utils/helpers.js'
+import {
+  addAccount,
+  addStockRobot,
+  createRobot,
+  reportDefect,
+  setCondition,
+} from './utils/helpers.js'
 
 interface RobotsData {
   robots: {
@@ -32,7 +46,10 @@ interface RobotsData {
   }
 }
 interface CreatedData {
-  createRobot: { apiKey: string; robot: { id: string; serial: string; apiKeyPrefix: string; status: string } }
+  createRobot: {
+    apiKey: string
+    robot: { id: string; serial: string; apiKeyPrefix: string; status: string }
+  }
 }
 
 let ctx: TestContext
@@ -65,7 +82,11 @@ describe('robots', () => {
     const robots = await list()
     expect(robots.source).toBe('PLATFORM')
     expect(robots.items).toHaveLength(1)
-    expect(robots.items[0]).toMatchObject({ status: 'ONLINE', battery: 80, model: { name: 'Delivery Bot Eten' } })
+    expect(robots.items[0]).toMatchObject({
+      status: 'ONLINE',
+      battery: 80,
+      model: { name: 'Delivery Bot Eten' },
+    })
     expect(JSON.stringify(robots), 'the list never carries the key').not.toContain(apiKey)
 
     const mongo = ctx.app.get(DataSource).mongoManager
@@ -82,7 +103,7 @@ describe('robots', () => {
     const second = (await makeRobot('c-demo', { name: 'Tweede Bot' })).data!.createRobot.robot
     expect([first.serial, second.serial]).toEqual(['RBT-000001', 'RBT-000002'])
     const items = (await list()).items
-    expect(items.map(robot => robot.qrCode)).toEqual(['rbt:RBT-000001', 'rbt:RBT-000002'])
+    expect(items.map((robot) => robot.qrCode)).toEqual(['rbt:RBT-000001', 'rbt:RBT-000002'])
   })
 
   it('a food robot is always an insulated one: there is no temperature to choose', async () => {
@@ -121,9 +142,15 @@ describe('robots', () => {
   })
 
   it('lists the robot models of our own catalogue', async () => {
-    const { data } = await gql<{ robotModels: { id: string; kind: string }[] }>(ctx.app, ROBOT_MODELS)
-    expect(data?.robotModels.map(model => model.id).sort()).toEqual(['model-food', 'model-parcel'])
-    expect(data?.robotModels.find(model => model.id === 'model-food')?.kind).toBe('FOOD')
+    const { data } = await gql<{ robotModels: { id: string; kind: string }[] }>(
+      ctx.app,
+      ROBOT_MODELS,
+    )
+    expect(data?.robotModels.map((model) => model.id).sort()).toEqual([
+      'model-food',
+      'model-parcel',
+    ])
+    expect(data?.robotModels.find((model) => model.id === 'model-food')?.kind).toBe('FOOD')
   })
 
   it('records who made the robot', async () => {
@@ -145,7 +172,12 @@ describe('what a technician wants to know about a robot (the condition)', () => 
       lid: 'OPEN',
       errorCode: 'E42',
       errorText: 'Gripper stuck',
-      location: { country: 'BE', address: 'Marksesteenweg 58, Kortrijk', longitude: 3.2647, latitude: 50.8283 },
+      location: {
+        country: 'BE',
+        address: 'Marksesteenweg 58, Kortrijk',
+        longitude: 3.2647,
+        latitude: 50.8283,
+      },
     })
     const { data } = await gql<{
       robot: { condition: Record<string, unknown>; inStock: boolean; qrCode: string }
@@ -168,10 +200,15 @@ describe('what a technician wants to know about a robot (the condition)', () => 
 
   it('knows nothing (null) about a robot the platform has no condition for, and still works when it is down', async () => {
     const robot = await createRobot(ctx)
-    expect((await gql<{ robot: { condition: unknown } }>(ctx.app, ROBOT, { id: robot.id })).data?.robot.condition).toBeNull()
+    expect(
+      (await gql<{ robot: { condition: unknown } }>(ctx.app, ROBOT, { id: robot.id })).data?.robot
+        .condition,
+    ).toBeNull()
     await setCondition(ctx, robot.id, { hasCargo: true })
     ctx.platform.down = true
-    const answer = await gql<{ robot: { name: string; condition: unknown } }>(ctx.app, ROBOT, { id: robot.id })
+    const answer = await gql<{ robot: { name: string; condition: unknown } }>(ctx.app, ROBOT, {
+      id: robot.id,
+    })
     expect(answer.errors).toBeUndefined()
     expect(answer.data?.robot.condition).toBeNull()
   })
@@ -181,17 +218,22 @@ describe('the warehouse and the QR codes', () => {
   it('finds a robot from what the scanner reads, in every notation', async () => {
     await addStockRobot(ctx, 'RBT-000417')
     for (const code of ['rbt:RBT-000417', 'RBT-000417', ' rbt:rbt-000417 ']) {
-      const { data } = await gql<{ robotByCode: { serial: string; inStock: boolean; status: string } | null }>(
-        ctx.app,
-        ROBOT_BY_CODE,
-        { code },
-      )
-      expect(data?.robotByCode, code).toMatchObject({ serial: 'RBT-000417', inStock: true, status: 'STOCK' })
+      const { data } = await gql<{
+        robotByCode: { serial: string; inStock: boolean; status: string } | null
+      }>(ctx.app, ROBOT_BY_CODE, { code })
+      expect(data?.robotByCode, code).toMatchObject({
+        serial: 'RBT-000417',
+        inStock: true,
+        status: 'STOCK',
+      })
     }
   })
 
   it('says null for an unknown number and BAD_REQUEST for a code that is not ours', async () => {
-    expect((await gql<{ robotByCode: unknown }>(ctx.app, ROBOT_BY_CODE, { code: 'RBT-999999' })).data?.robotByCode).toBeNull()
+    expect(
+      (await gql<{ robotByCode: unknown }>(ctx.app, ROBOT_BY_CODE, { code: 'RBT-999999' })).data
+        ?.robotByCode,
+    ).toBeNull()
     const other = await gql(ctx.app, ROBOT_BY_CODE, { code: 'https://example.com/x' })
     expect(codeOf(other)).toBe('BAD_REQUEST')
     expect(domainCodeOf(other)).toBe('invalid_robot_code')
@@ -201,8 +243,11 @@ describe('the warehouse and the QR codes', () => {
     await addStockRobot(ctx, 'RBT-000417')
     await addStockRobot(ctx, 'RBT-000418', 'model-parcel')
     await createRobot(ctx)
-    const { data } = await gql<{ stockRobots: { serial: string; model: { kind: string } }[] }>(ctx.app, STOCK_ROBOTS)
-    expect(data?.stockRobots.map(robot => [robot.serial, robot.model.kind]).sort()).toEqual([
+    const { data } = await gql<{ stockRobots: { serial: string; model: { kind: string } }[] }>(
+      ctx.app,
+      STOCK_ROBOTS,
+    )
+    expect(data?.stockRobots.map((robot) => [robot.serial, robot.model.kind]).sort()).toEqual([
       ['RBT-000417', 'FOOD'],
       ['RBT-000418', 'PARCEL'],
     ])
@@ -217,9 +262,13 @@ describe('the warehouse and the QR codes', () => {
 describe('putting a robot out of service (soft delete)', () => {
   it('stops its key, takes it out of the list, and keeps it', async () => {
     const robot = await createRobot(ctx)
-    const removed = await gql<{ removeRobot: { status: string; deletedAt: string | null } }>(ctx.app, REMOVE_ROBOT, {
-      id: robot.id,
-    })
+    const removed = await gql<{ removeRobot: { status: string; deletedAt: string | null } }>(
+      ctx.app,
+      REMOVE_ROBOT,
+      {
+        id: robot.id,
+      },
+    )
     expect(removed.errors).toBeUndefined()
     expect(removed.data?.removeRobot).toMatchObject({ status: 'OUT_OF_SERVICE' })
     expect(removed.data?.removeRobot.deletedAt).toBeTruthy()
@@ -235,9 +284,13 @@ describe('putting a robot out of service (soft delete)', () => {
   it('restores the robot: the key works again', async () => {
     const robot = await createRobot(ctx)
     await gql(ctx.app, REMOVE_ROBOT, { id: robot.id })
-    const restored = await gql<{ restoreRobot: { status: string; deletedAt: string | null } }>(ctx.app, RESTORE_ROBOT, {
-      id: robot.id,
-    })
+    const restored = await gql<{ restoreRobot: { status: string; deletedAt: string | null } }>(
+      ctx.app,
+      RESTORE_ROBOT,
+      {
+        id: robot.id,
+      },
+    )
     expect(restored.errors).toBeUndefined()
     expect(restored.data?.restoreRobot.deletedAt).toBeNull()
     expect(ctx.platform.robots.get(robot.id)!.retired).toBe(false)

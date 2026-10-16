@@ -51,7 +51,10 @@ export class Defect {
   @Column({ nullable: true })
   assignedTo: string | null
 
-  @Field(() => Date, { nullable: true, description: 'When the technician took it ("ik ga erheen")' })
+  @Field(() => Date, {
+    nullable: true,
+    description: 'When the technician took it ("ik ga erheen")',
+  })
   @Column({ nullable: true })
   claimedAt: Date | null
 

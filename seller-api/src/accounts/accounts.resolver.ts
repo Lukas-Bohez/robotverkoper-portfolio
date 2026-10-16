@@ -1,11 +1,4 @@
-import {
-  Args,
-  Mutation,
-  Parent,
-  Query,
-  ResolveField,
-  Resolver,
-} from '@nestjs/graphql'
+import { Args, Mutation, Parent, Query, ResolveField, Resolver } from '@nestjs/graphql'
 import { CurrentCaller, RequirePermissions } from '../authentication/decorators.js'
 import type { Caller } from '../authentication/request.js'
 import { SellerRole } from '../seller-roles/entities/seller-role.entity.js'
@@ -26,9 +19,7 @@ export class AccountsResolver {
     name: 'accounts',
     description: 'Our own staff, administrators of the settings first',
   })
-  findAll(
-    @Args('withDeleted', { defaultValue: false }) withDeleted: boolean,
-  ): Promise<Account[]> {
+  findAll(@Args('withDeleted', { defaultValue: false }) withDeleted: boolean): Promise<Account[]> {
     return this.accounts.findAll(withDeleted)
   }
 
@@ -45,19 +36,13 @@ export class AccountsResolver {
   @Mutation(() => Account, {
     description: 'Archives an account (soft delete): it can no longer log in and can be restored',
   })
-  removeAccount(
-    @CurrentCaller() caller: Caller,
-    @Args('email') email: string,
-  ): Promise<Account> {
+  removeAccount(@CurrentCaller() caller: Caller, @Args('email') email: string): Promise<Account> {
     return this.accounts.remove(caller.email, email.trim().toLowerCase())
   }
 
   @RequirePermissions('archive:restore')
   @Mutation(() => Account)
-  restoreAccount(
-    @CurrentCaller() caller: Caller,
-    @Args('email') email: string,
-  ): Promise<Account> {
+  restoreAccount(@CurrentCaller() caller: Caller, @Args('email') email: string): Promise<Account> {
     return this.accounts.restore(caller.email, email.trim().toLowerCase())
   }
 

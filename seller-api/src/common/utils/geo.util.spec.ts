@@ -3,7 +3,10 @@ import { describe, expect, it } from 'vitest'
 import { distanceInMeters } from './geo.util.js'
 
 // GeoJSON order: [longitude, latitude]
-const point = (longitude: number, latitude: number): Point => ({ type: 'Point', coordinates: [longitude, latitude] })
+const point = (longitude: number, latitude: number): Point => ({
+  type: 'Point',
+  coordinates: [longitude, latitude],
+})
 const KORTRIJK = point(3.2647, 50.8283)
 const GENT = point(3.7248, 51.0543)
 

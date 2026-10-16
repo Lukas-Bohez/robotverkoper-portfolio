@@ -2,12 +2,15 @@ import { Field, ID, InputType } from '@nestjs/graphql'
 import { Transform } from 'class-transformer'
 import { IsOptional, Length } from 'class-validator'
 
-const trim = ({ value }: { value: unknown }) =>
-  typeof value === 'string' ? value.trim() : value
+const trim = ({ value }: { value: unknown }) => (typeof value === 'string' ? value.trim() : value)
 
 @InputType()
 export class CreatePairingInput {
-  @Field(() => String, { nullable: true, defaultValue: 'Simulator', description: 'What the device calls itself' })
+  @Field(() => String, {
+    nullable: true,
+    defaultValue: 'Simulator',
+    description: 'What the device calls itself',
+  })
   @Transform(trim)
   @IsOptional()
   @Length(1, 60)

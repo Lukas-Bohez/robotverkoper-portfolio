@@ -21,10 +21,14 @@ afterAll(() => ctx.close())
 beforeEach(() => ctx.reset())
 
 async function robot() {
-  const created = await gql<{ createRobot: { robot: { id: string }; apiKey: string } }>(ctx.app, CREATE_ROBOT, {
-    companyId: 'c-demo',
-    input: { name: 'Food Robot 2', modelId: 'model-food' },
-  })
+  const created = await gql<{ createRobot: { robot: { id: string }; apiKey: string } }>(
+    ctx.app,
+    CREATE_ROBOT,
+    {
+      companyId: 'c-demo',
+      input: { name: 'Food Robot 2', modelId: 'model-food' },
+    },
+  )
   return created.data!.createRobot
 }
 
@@ -40,19 +44,18 @@ async function announce(device = 'Windows-simulator') {
 }
 
 const collect = (id: string, secret: string) =>
-  gql<{ collectPairing: { status: string; apiKey?: string; robotName?: string; platformUrl?: string } }>(
-    ctx.app,
-    COLLECT_PAIRING,
-    { id, secret },
-    null,
-  )
+  gql<{
+    collectPairing: { status: string; apiKey?: string; robotName?: string; platformUrl?: string }
+  }>(ctx.app, COLLECT_PAIRING, { id, secret }, null)
 
 describe('the key goes from the PWA to the simulator', () => {
   it('a simulator announces itself without a login, and the seller sees it', async () => {
     const ticket = await announce()
     expect(ticket.secret.length).toBeGreaterThanOrEqual(20)
 
-    const list = await gql<{ waitingPairings: { device: string; code: string; loopback: boolean }[] }>(ctx.app, WAITING_PAIRINGS)
+    const list = await gql<{
+      waitingPairings: { device: string; code: string; loopback: boolean }[]
+    }>(ctx.app, WAITING_PAIRINGS)
     expect(list.data!.waitingPairings).toHaveLength(1)
     expect(list.data!.waitingPairings[0]).toMatchObject({
       device: 'Windows-simulator',
@@ -64,9 +67,16 @@ describe('the key goes from the PWA to the simulator', () => {
 
   it('only a logged-in seller sees the waiting simulators or hands out a key', async () => {
     expect(codeOf(await gql(ctx.app, WAITING_PAIRINGS, {}, null))).toBe('UNAUTHENTICATED')
-    expect(codeOf(await gql(ctx.app, WAITING_PAIRINGS, {}, 'vreemde@example.com'))).toBe('FORBIDDEN')
+    expect(codeOf(await gql(ctx.app, WAITING_PAIRINGS, {}, 'vreemde@example.com'))).toBe(
+      'FORBIDDEN',
+    )
     const { id } = await announce()
-    const deliver = await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: 'x', apiKey: 'rb_xxxxxxxxxxxx' } }, null)
+    const deliver = await gql(
+      ctx.app,
+      DELIVER,
+      { pairingId: id, input: { robotId: 'x', apiKey: 'rb_xxxxxxxxxxxx' } },
+      null,
+    )
     expect(codeOf(deliver)).toBe('UNAUTHENTICATED')
   })
 
@@ -106,7 +116,8 @@ describe('the key goes from the PWA to the simulator', () => {
       await mongo.getMongoRepository('robots').find(),
     ])
     expect(everything).not.toContain(apiKey)
-    const audit = (await gql<{ auditLog: { action: string; detail: string }[] }>(ctx.app, AUDIT)).data!.auditLog[0]!
+    const audit = (await gql<{ auditLog: { action: string; detail: string }[] }>(ctx.app, AUDIT))
+      .data!.auditLog[0]!
     expect(audit.action).toBe('robot.key-sent')
     expect(audit.detail).toMatch(/Food Robot 2/)
   })
@@ -114,12 +125,24 @@ describe('the key goes from the PWA to the simulator', () => {
   it('refuses a key that does not belong to the robot, an unknown robot, and a simulator that left', async () => {
     const { robot: made, apiKey } = await robot()
     const { id, secret } = await announce()
-    const wrong = await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: made.id, apiKey: 'rb_andere-sleutel-xyz' } })
+    const wrong = await gql(ctx.app, DELIVER, {
+      pairingId: id,
+      input: { robotId: made.id, apiKey: 'rb_andere-sleutel-xyz' },
+    })
     expect(domainCodeOf(wrong)).toBe('key_mismatch')
-    expect(codeOf(await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: 'nope', apiKey } }))).toBe('NOT_FOUND')
-    const cancelled = await gql<{ cancelPairing: boolean }>(ctx.app, CANCEL_PAIRING, { id, secret }, null)
+    expect(
+      codeOf(await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: 'nope', apiKey } })),
+    ).toBe('NOT_FOUND')
+    const cancelled = await gql<{ cancelPairing: boolean }>(
+      ctx.app,
+      CANCEL_PAIRING,
+      { id, secret },
+      null,
+    )
     expect(cancelled.data?.cancelPairing).toBe(true)
-    expect(codeOf(await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: made.id, apiKey } }))).toBe('NOT_FOUND')
+    expect(
+      codeOf(await gql(ctx.app, DELIVER, { pairingId: id, input: { robotId: made.id, apiKey } })),
+    ).toBe('NOT_FOUND')
   })
 
   it('gives nothing to a simulator that does not know the secret', async () => {

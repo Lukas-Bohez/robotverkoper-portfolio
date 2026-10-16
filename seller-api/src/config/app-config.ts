@@ -24,7 +24,7 @@ export const APP_CONFIG = Symbol('APP_CONFIG')
 function list(value: string | undefined): string[] {
   return (value ?? '')
     .split(',')
-    .map(item => item.trim())
+    .map((item) => item.trim())
     .filter(Boolean)
 }
 
@@ -49,10 +49,7 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     throw new Error('SEED_DEMO is for a demo, never for production')
   }
 
-  const platformUrl = (env.PLATFORM_URL ?? 'http://127.0.0.1:4100').replace(
-    /\/+$/,
-    '',
-  )
+  const platformUrl = (env.PLATFORM_URL ?? 'http://127.0.0.1:4100').replace(/\/+$/, '')
 
   return {
     host: env.BIND_HOST?.trim() || '127.0.0.1',
@@ -63,15 +60,11 @@ export function loadAppConfig(env: NodeJS.ProcessEnv = process.env): AppConfig {
     requireVerifiedEmail: env.REQUIRE_VERIFIED_EMAIL
       ? env.REQUIRE_VERIFIED_EMAIL === 'true'
       : production,
-    sellerAdminEmails: list(env.SELLER_ADMIN_EMAILS).map(email =>
-      email.toLowerCase(),
-    ),
+    sellerAdminEmails: list(env.SELLER_ADMIN_EMAILS).map((email) => email.toLowerCase()),
     platformUrl,
     platformToken: env.PLATFORM_TOKEN ?? 'dev-platform-token',
     robotApiUrl: env.ROBOT_API_URL?.trim() || `${platformUrl}/graphql`,
-    corsOrigins: list(
-      env.CORS_ORIGINS ?? 'http://localhost:5174,http://127.0.0.1:5174',
-    ),
+    corsOrigins: list(env.CORS_ORIGINS ?? 'http://localhost:5174,http://127.0.0.1:5174'),
     seedDemo,
     production,
   }

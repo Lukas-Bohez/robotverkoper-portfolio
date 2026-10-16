@@ -1,11 +1,5 @@
 import { Field, ID, Int, ObjectType } from '@nestjs/graphql'
-import {
-  Column,
-  DeleteDateColumn,
-  Entity,
-  ObjectIdColumn,
-  UpdateDateColumn,
-} from 'typeorm'
+import { Column, DeleteDateColumn, Entity, ObjectIdColumn, UpdateDateColumn } from 'typeorm'
 import { PlatformSource } from '../../common/graphql/platform-source.js'
 
 /**

@@ -52,8 +52,10 @@ export function localizedName(
 }
 
 /** The languages that still miss a name (the screen shows "FR en DE ontbreken") */
-export function missingLanguages(names: Partial<Record<Language, string | null>> | null | undefined): Language[] {
-  return LANGUAGES.filter(code => {
+export function missingLanguages(
+  names: Partial<Record<Language, string | null>> | null | undefined,
+): Language[] {
+  return LANGUAGES.filter((code) => {
     const name = names?.[code]
     return typeof name !== 'string' || name.trim() === ''
   })

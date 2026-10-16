@@ -7,9 +7,13 @@ import { Location } from './location.entity.js'
  * is it tilted, how full is the battery, is the lid locked, where is it. It is what the platform last heard from
  * the robot. An embedded document: a defect keeps the condition of the moment it was reported.
  */
-@ObjectType({ description: 'The condition of a robot: cargo, tilt, battery, lid, temperature, location' })
+@ObjectType({
+  description: 'The condition of a robot: cargo, tilt, battery, lid, temperature, location',
+})
 export class RobotCondition {
-  @Field(() => Boolean, { description: 'The robot is tilted (it lies on its side or stands crooked)' })
+  @Field(() => Boolean, {
+    description: 'The robot is tilted (it lies on its side or stands crooked)',
+  })
   tilted: boolean
 
   @Field(() => Int, { nullable: true, description: 'How far, in degrees' })
@@ -18,13 +22,19 @@ export class RobotCondition {
   @Field(() => Boolean, { description: 'There is food or a parcel inside' })
   hasCargo: boolean
 
-  @Field(() => String, { nullable: true, description: 'What is inside, for example the order and its items' })
+  @Field(() => String, {
+    nullable: true,
+    description: 'What is inside, for example the order and its items',
+  })
   cargoSummary: string | null
 
   @Field(() => String, { nullable: true, description: 'Since when the cargo is inside (ISO date)' })
   cargoSince: string | null
 
-  @Field(() => Float, { nullable: true, description: 'Temperature of the compartment in degrees Celsius' })
+  @Field(() => Float, {
+    nullable: true,
+    description: 'Temperature of the compartment in degrees Celsius',
+  })
   compartmentTemp: number | null
 
   @Field(() => LidState)
@@ -36,7 +46,10 @@ export class RobotCondition {
   @Field(() => Boolean, { nullable: true })
   online: boolean | null
 
-  @Field(() => String, { nullable: true, description: 'The last time the platform heard from the robot (ISO date)' })
+  @Field(() => String, {
+    nullable: true,
+    description: 'The last time the platform heard from the robot (ISO date)',
+  })
   lastSeenAt: string | null
 
   @Field(() => String, { nullable: true, description: 'For example E42' })

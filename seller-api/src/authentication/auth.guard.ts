@@ -59,14 +59,14 @@ export class AuthGuard implements CanActivate {
       REQUIRED_PERMISSIONS,
       targets,
     )
-    if (required?.some(permission => !permissions.includes(permission))) {
+    if (required?.some((permission) => !permissions.includes(permission))) {
       throw new ForbiddenException('You have no access to this')
     }
     const anyOf = this.reflector.getAllAndOverride<SellerPermission[] | undefined>(
       REQUIRED_ANY_PERMISSION,
       targets,
     )
-    if (anyOf && !anyOf.some(permission => permissions.includes(permission))) {
+    if (anyOf && !anyOf.some((permission) => permissions.includes(permission))) {
       throw new ForbiddenException('You have no access to this')
     }
     return true

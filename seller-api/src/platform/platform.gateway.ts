@@ -102,5 +102,8 @@ export abstract class PlatformGateway {
    */
   simulateTelemetry?(robotId: string, state: { online: boolean; battery: number }): Promise<void>
   /** Only for a simulated platform: set the condition of a robot by hand (the demo and the tests) */
-  simulateCondition?(robotId: string, condition: Partial<Omit<PlatformCondition, 'id'>>): Promise<void>
+  simulateCondition?(
+    robotId: string,
+    condition: Partial<Omit<PlatformCondition, 'id'>>,
+  ): Promise<void>
 }

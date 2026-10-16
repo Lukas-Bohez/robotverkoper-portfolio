@@ -13,7 +13,12 @@ import { MeResolver } from './me.resolver.js'
  */
 @Module({
   imports: [AccountsModule, SellerRolesModule],
-  providers: [FirebaseService, IdentityService, MeResolver, { provide: APP_GUARD, useClass: AuthGuard }],
+  providers: [
+    FirebaseService,
+    IdentityService,
+    MeResolver,
+    { provide: APP_GUARD, useClass: AuthGuard },
+  ],
   exports: [IdentityService],
 })
 export class AuthenticationModule {}

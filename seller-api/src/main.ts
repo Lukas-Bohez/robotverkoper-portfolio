@@ -17,13 +17,19 @@ async function bootstrap() {
     await app.get(SeedService).seedAll()
   } catch (error) {
     // A platform that does not answer yet must not stop the API: the demo data can be added later (`npm run cli -- seed`)
-    new Logger('Seed').error(`Seeding failed: ${error instanceof Error ? error.message : String(error)}`)
+    new Logger('Seed').error(
+      `Seeding failed: ${error instanceof Error ? error.message : String(error)}`,
+    )
   }
 
   await app.listen(config.port, config.host)
   const log = new Logger('seller-api')
   log.log(`GraphQL on ${await app.getUrl()}/graphql`)
-  log.log(`Auth: ${config.authMode}. Administrators: ${config.sellerAdminEmails.join(', ') || '(none: set SELLER_ADMIN_EMAILS)'}`)
-  log.log(`Platform: ${config.platformUrl}. Database: ${config.mongodbUri.replace(/\/\/[^@]*@/, '//***@')}`)
+  log.log(
+    `Auth: ${config.authMode}. Administrators: ${config.sellerAdminEmails.join(', ') || '(none: set SELLER_ADMIN_EMAILS)'}`,
+  )
+  log.log(
+    `Platform: ${config.platformUrl}. Database: ${config.mongodbUri.replace(/\/\/[^@]*@/, '//***@')}`,
+  )
 }
 await bootstrap()

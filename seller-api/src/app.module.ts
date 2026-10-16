@@ -12,7 +12,11 @@ import { AuditModule } from './audit/audit.module.js'
 import { AuthenticationModule } from './authentication/authentication.module.js'
 import { requestFromConnectionParams } from './authentication/request.js'
 import { DomainException } from './common/domain-exception.js'
-import { formatGraphqlError, logUnexpectedError, withErrorCodes } from './common/graphql/format-error.js'
+import {
+  formatGraphqlError,
+  logUnexpectedError,
+  withErrorCodes,
+} from './common/graphql/format-error.js'
 import { RealtimeModule } from './common/realtime/realtime.module.js'
 import { CompaniesModule } from './companies/companies.module.js'
 import { APP_CONFIG, type AppConfig } from './config/app-config.js'
@@ -30,15 +34,14 @@ import { SellerRolesModule } from './seller-roles/seller-roles.module.js'
 import { SeedModule } from './seed/seed.module.js'
 
 /** The generated schema, next to the build. `memory` keeps it in memory only (the tests). */
-export const SCHEMA_FILE =
-  process.env.GRAPHQL_SCHEMA_FILE === 'memory' ? true : './dist/schema.gql'
+export const SCHEMA_FILE = process.env.GRAPHQL_SCHEMA_FILE === 'memory' ? true : './dist/schema.gql'
 
 /** The field of a failed validation decides the stable code the PWA translates */
 function validationException(errors: ValidationError[]): DomainException {
   const first = errors[0]
   const messages = Object.values(first?.constraints ?? {})
   const code =
-    messages.find(message => /^invalid_[a-z_]+$/.test(message)) ??
+    messages.find((message) => /^invalid_[a-z_]+$/.test(message)) ??
     (first?.constraints && 'isEmail' in first.constraints ? 'invalid_email' : 'invalid_input')
   return new DomainException(
     400,

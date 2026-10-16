@@ -24,16 +24,29 @@ describe('robot numbers (the text of the QR code)', () => {
   })
 
   describe('parseRobotCode: what a scanner reads or a person types', () => {
-    it.each(['rbt:RBT-000417', 'RBT-000417', 'rbt:rbt-000417', ' rbt: RBT-000417 ', '  rbt-000417'])('reads %j', code => {
+    it.each([
+      'rbt:RBT-000417',
+      'RBT-000417',
+      'rbt:rbt-000417',
+      ' rbt: RBT-000417 ',
+      '  rbt-000417',
+    ])('reads %j', (code) => {
       expect(parseRobotCode(code)).toBe('RBT-000417')
     })
 
-    it.each(['', 'https://example.com', 'RBT-417', 'RBT-0004170', 'rbt:', 'robot-000417', 'rbt:RBT-000417x'])(
-      'refuses %j with invalid_robot_code',
-      code => {
-        expect(() => parseRobotCode(code)).toThrow(expect.objectContaining({ code: 'invalid_robot_code' }))
-      },
-    )
+    it.each([
+      '',
+      'https://example.com',
+      'RBT-417',
+      'RBT-0004170',
+      'rbt:',
+      'robot-000417',
+      'rbt:RBT-000417x',
+    ])('refuses %j with invalid_robot_code', (code) => {
+      expect(() => parseRobotCode(code)).toThrow(
+        expect.objectContaining({ code: 'invalid_robot_code' }),
+      )
+    })
 
     it('what qrPayload makes is what parseRobotCode reads', () => {
       expect(parseRobotCode(qrPayload(formatSerial(212)))).toBe('RBT-000212')

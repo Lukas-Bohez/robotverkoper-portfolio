@@ -23,7 +23,9 @@ export class Robot {
   @ObjectIdColumn() // Database link - TypeORM
   _id: string
 
-  @Field(() => ID, { description: 'The id of the platform, or our own id for a robot in the warehouse' }) // GraphQL
+  @Field(() => ID, {
+    description: 'The id of the platform, or our own id for a robot in the warehouse',
+  }) // GraphQL
   get id(): string {
     return this.platformId ?? String(this._id)
   }
@@ -44,7 +46,9 @@ export class Robot {
   @Column()
   name: string
 
-  @Field(() => String, { description: 'The number on the QR code on the robot, for example RBT-000212' })
+  @Field(() => String, {
+    description: 'The number on the QR code on the robot, for example RBT-000212',
+  })
   @Column()
   serial: string
 
@@ -62,7 +66,10 @@ export class Robot {
   @Column({ nullable: true })
   retiredAt: Date | null
 
-  @Field(() => Boolean, { nullable: true, description: 'Null while we have not heard from the platform' })
+  @Field(() => Boolean, {
+    nullable: true,
+    description: 'Null while we have not heard from the platform',
+  })
   @Column({ nullable: true })
   online: boolean | null
 

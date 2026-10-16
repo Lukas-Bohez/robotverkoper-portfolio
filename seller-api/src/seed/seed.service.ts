@@ -85,9 +85,11 @@ export class SeedService {
     const companies = await this.platform.listCompanies()
     const robotIds = new Map<string, string>()
     for (const demo of DEMO_ROBOTS) {
-      const company = companies.find(item => item.subdomain === demo.company)
+      const company = companies.find((item) => item.subdomain === demo.company)
       if (!company) {
-        this.logger.warn(`The platform has no company "${demo.company}", robot "${demo.name}" skipped`)
+        this.logger.warn(
+          `The platform has no company "${demo.company}", robot "${demo.name}" skipped`,
+        )
         continue
       }
       const { robot } = await this.robots.create(
@@ -97,7 +99,10 @@ export class SeedService {
         { serial: demo.serial },
       )
       robotIds.set(demo.name, robot.id)
-      await this.platform.simulateTelemetry?.(robot.id, { online: demo.online, battery: demo.battery })
+      await this.platform.simulateTelemetry?.(robot.id, {
+        online: demo.online,
+        battery: demo.battery,
+      })
       const condition = DEMO_CONDITIONS[demo.name]
       if (condition) {
         await this.platform.simulateCondition?.(robot.id, {
@@ -107,12 +112,20 @@ export class SeedService {
       }
     }
     for (const stock of STOCK_ROBOTS) {
-      await this.robots.addToStock(ACTOR, { name: stock.name, modelId: stock.model, serial: stock.serial })
+      await this.robots.addToStock(ACTOR, {
+        name: stock.name,
+        modelId: stock.model,
+        serial: stock.serial,
+      })
     }
     await this.seedDefects(robotIds)
-    await this.seedCompanyRoles(companies.map(company => ({ id: company.id, subdomain: company.subdomain })))
+    await this.seedCompanyRoles(
+      companies.map((company) => ({ id: company.id, subdomain: company.subdomain })),
+    )
     await this.seedHistory(robotIds)
-    this.logger.log('Demo seed: staff, presets, robots, stock, three defects and old defects in cold storage')
+    this.logger.log(
+      'Demo seed: staff, presets, robots, stock, three defects and old defects in cold storage',
+    )
   }
 
   private async seedStaff(): Promise<void> {
@@ -143,7 +156,7 @@ export class SeedService {
 
   /** The first company gets the roles Kok, Lader and Ober from the presets */
   private async seedCompanyRoles(companies: { id: string; subdomain: string }[]): Promise<void> {
-    const demo = companies.find(company => company.subdomain === 'demo')
+    const demo = companies.find((company) => company.subdomain === 'demo')
     if (!demo) return
     for (const preset of await this.presets.findAll()) {
       if (DEMO_COMPANY_PRESETS.includes(localizedName(preset.names, 'nl', ''))) {
@@ -194,7 +207,9 @@ export class SeedService {
       } as never)
     }
     const moved = await this.cold.moveOldData()
-    this.logger.log(`Cold storage: ${moved.defects} defects and ${moved.auditEntries} log lines moved`)
+    this.logger.log(
+      `Cold storage: ${moved.defects} defects and ${moved.auditEntries} log lines moved`,
+    )
   }
 
   /** What `seed` does, and what the API does when it starts */

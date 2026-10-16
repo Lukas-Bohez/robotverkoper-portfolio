@@ -33,7 +33,12 @@ export class FakePlatform extends PlatformGateway {
   reset(): void {
     this.companiesList = [
       { id: 'c-demo', name: 'Demozaak', subdomain: 'demo', createdAt: '2026-09-23T08:00:00.000Z' },
-      { id: 'c-gelato', name: 'Gelato Bar', subdomain: 'gelato', createdAt: '2026-10-10T09:30:00.000Z' },
+      {
+        id: 'c-gelato',
+        name: 'Gelato Bar',
+        subdomain: 'gelato',
+        createdAt: '2026-10-10T09:30:00.000Z',
+      },
     ]
     this.roles = new Map()
     this.robots = new Map()
@@ -45,18 +50,23 @@ export class FakePlatform extends PlatformGateway {
   }
 
   private check(): void {
-    if (this.down) throw new DomainException(502, 'platform_unavailable', 'The platform does not answer')
+    if (this.down)
+      throw new DomainException(502, 'platform_unavailable', 'The platform does not answer')
   }
 
   listCompanies(): Promise<PlatformCompany[]> {
     this.check()
-    return Promise.resolve(this.companiesList.map(company => ({ ...company })))
+    return Promise.resolve(this.companiesList.map((company) => ({ ...company })))
   }
 
-  createCompany(input: { name: string; subdomain: string; adminEmail: string }): Promise<PlatformCompany> {
+  createCompany(input: {
+    name: string
+    subdomain: string
+    adminEmail: string
+  }): Promise<PlatformCompany> {
     this.check()
     this.lastCreateCompany = input
-    if (this.companiesList.some(company => company.subdomain === input.subdomain)) {
+    if (this.companiesList.some((company) => company.subdomain === input.subdomain)) {
       return Promise.reject(
         new DomainException(409, 'subdomain_taken', `The subdomain "${input.subdomain}" is taken`),
       )
@@ -91,8 +101,8 @@ export class FakePlatform extends PlatformGateway {
     this.check()
     return Promise.resolve(
       this.rolesOf(companyId)
-        .filter(role => withArchived || !role.archivedAt)
-        .map(role => ({ ...role })),
+        .filter((role) => withArchived || !role.archivedAt)
+        .map((role) => ({ ...role })),
     )
   }
 
@@ -111,12 +121,16 @@ export class FakePlatform extends PlatformGateway {
   }
 
   private roleOf(companyId: string, roleId: string): PlatformRole {
-    const role = this.rolesOf(companyId).find(item => item.id === roleId)
+    const role = this.rolesOf(companyId).find((item) => item.id === roleId)
     if (!role) throw new DomainException(404, 'role_not_found', 'This role does not exist')
     return role
   }
 
-  async updateRole(companyId: string, roleId: string, input: Partial<RoleInput>): Promise<PlatformRole> {
+  async updateRole(
+    companyId: string,
+    roleId: string,
+    input: Partial<RoleInput>,
+  ): Promise<PlatformRole> {
     this.check()
     const role = this.roleOf(companyId, roleId)
     if (input.name) role.name = input.name
@@ -172,7 +186,10 @@ export class FakePlatform extends PlatformGateway {
     return Promise.resolve()
   }
 
-  simulateCondition(robotId: string, condition: Partial<Omit<PlatformCondition, 'id'>>): Promise<void> {
+  simulateCondition(
+    robotId: string,
+    condition: Partial<Omit<PlatformCondition, 'id'>>,
+  ): Promise<void> {
     this.conditions.set(robotId, {
       tilted: false,
       tiltDegrees: null,
@@ -193,7 +210,7 @@ export class FakePlatform extends PlatformGateway {
   robotConditions(ids: string[]): Promise<PlatformCondition[]> {
     this.check()
     return Promise.resolve(
-      ids.flatMap(id => {
+      ids.flatMap((id) => {
         const condition = this.conditions.get(id)
         return condition ? [{ id, ...condition }] : []
       }),
@@ -204,9 +221,9 @@ export class FakePlatform extends PlatformGateway {
     this.check()
     return Promise.resolve(
       ids
-        .map(id => ({ id, robot: this.robots.get(id) }))
-        .filter(item => item.robot)
-        .map(item => ({ id: item.id, online: item.robot!.online, battery: item.robot!.battery })),
+        .map((id) => ({ id, robot: this.robots.get(id) }))
+        .filter((item) => item.robot)
+        .map((item) => ({ id: item.id, online: item.robot!.online, battery: item.robot!.battery })),
     )
   }
 }

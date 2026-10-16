@@ -16,7 +16,9 @@ export class CompanyRole {
   @Field(() => [String])
   permissions: string[]
 
-  @Field(() => Boolean, { description: 'The administrator role is locked: it cannot be changed or archived' })
+  @Field(() => Boolean, {
+    description: 'The administrator role is locked: it cannot be changed or archived',
+  })
   locked: boolean
 
   @Field(() => Date, { nullable: true, description: 'Set when the role is archived (soft delete)' })
@@ -29,7 +31,8 @@ export class RoleCopyResult {
   copied: number
 
   @Field(() => [String], {
-    description: 'Roles that were left out because the company has one with that name, as "company: role"',
+    description:
+      'Roles that were left out because the company has one with that name, as "company: role"',
   })
   skipped: string[]
 }

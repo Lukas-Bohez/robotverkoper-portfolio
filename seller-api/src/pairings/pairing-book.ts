@@ -74,14 +74,18 @@ export class PairingBook {
   create(device: string, loopback: boolean): { id: string; secret: string; code: string } {
     this.purge()
     if (this.entries.size >= this.max) {
-      throw new DomainException(429, 'too_many_pairings', 'Too many simulators are waiting. Try again in a minute.')
+      throw new DomainException(
+        429,
+        'too_many_pairings',
+        'Too many simulators are waiting. Try again in a minute.',
+      )
     }
     const id = randomUUID()
     const secret = randomBytes(24).toString('base64url')
     let code = ''
     do {
-      code = Array.from(randomBytes(4), byte => ALPHABET[byte % ALPHABET.length]).join('')
-    } while ([...this.entries.values()].some(entry => entry.code === code))
+      code = Array.from(randomBytes(4), (byte) => ALPHABET[byte % ALPHABET.length]).join('')
+    } while ([...this.entries.values()].some((entry) => entry.code === code))
     const createdMs = this.now()
     this.entries.set(id, {
       id,
@@ -99,27 +103,40 @@ export class PairingBook {
   waiting(): WaitingPairing[] {
     this.purge()
     return [...this.entries.values()]
-      .filter(entry => entry.delivery === null)
-      .map(({ id, device, code, loopback, createdAt }) => ({ id, device, code, loopback, createdAt }))
+      .filter((entry) => entry.delivery === null)
+      .map(({ id, device, code, loopback, createdAt }) => ({
+        id,
+        device,
+        code,
+        loopback,
+        createdAt,
+      }))
   }
 
   /** The seller's PWA puts the key of a robot in the pairing of a simulator */
   deliver(id: string, delivery: Delivery): WaitingPairing {
     this.purge()
     const entry = this.entries.get(id)
-    if (!entry) throw new DomainException(404, 'pairing_not_found', 'This simulator is not waiting any more')
-    if (entry.delivery) throw new DomainException(409, 'pairing_taken', 'This simulator already got a key')
+    if (!entry)
+      throw new DomainException(404, 'pairing_not_found', 'This simulator is not waiting any more')
+    if (entry.delivery)
+      throw new DomainException(409, 'pairing_taken', 'This simulator already got a key')
     entry.delivery = { ...delivery, at: this.now() }
     const { device, code, loopback, createdAt } = entry
     return { id, device, code, loopback, createdAt }
   }
 
   /** The simulator asks if there is a key. It gets it once, then the pairing is gone. */
-  collect(id: string, secret: string): { status: 'waiting' } | ({ status: 'delivered' } & Delivery) {
+  collect(
+    id: string,
+    secret: string,
+  ): { status: 'waiting' } | ({ status: 'delivered' } & Delivery) {
     this.purge()
     const entry = this.entries.get(id)
-    if (!entry) throw new DomainException(404, 'pairing_not_found', 'This pairing does not exist (any more)')
-    if (!sameSecret(secret, entry.secret)) throw new DomainException(403, 'forbidden', 'Wrong pairing secret')
+    if (!entry)
+      throw new DomainException(404, 'pairing_not_found', 'This pairing does not exist (any more)')
+    if (!sameSecret(secret, entry.secret))
+      throw new DomainException(403, 'forbidden', 'Wrong pairing secret')
     if (!entry.delivery) return { status: 'waiting' }
     this.entries.delete(id)
     const { apiKey, robotName, platformUrl } = entry.delivery

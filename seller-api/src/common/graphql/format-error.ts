@@ -1,9 +1,5 @@
 import { Logger } from '@nestjs/common'
-import type {
-  ExecutionResult,
-  FormattedExecutionResult,
-  GraphQLFormattedError,
-} from 'graphql'
+import type { ExecutionResult, FormattedExecutionResult, GraphQLFormattedError } from 'graphql'
 
 const logger = new Logger('GraphQL')
 
@@ -105,7 +101,7 @@ export function withErrorCodes(result: ExecutionResult): FormattedExecutionResul
     if (!errors?.length) return rest
     return {
       ...rest,
-      errors: errors.map(error => formatGraphqlError(error.toJSON(), error.originalError)),
+      errors: errors.map((error) => formatGraphqlError(error.toJSON(), error.originalError)),
     }
   } catch {
     return result

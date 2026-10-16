@@ -49,11 +49,7 @@ export class RobotsService {
     models: Pick<RobotModel, 'key' | 'name' | 'kind' | 'description'>[],
   ): Promise<void> {
     for (const model of models) {
-      await this.models.updateOne(
-        { key: model.key },
-        { $set: { ...model } },
-        { upsert: true },
-      )
+      await this.models.updateOne({ key: model.key }, { $set: { ...model } }, { upsert: true })
     }
   }
 
@@ -106,10 +102,10 @@ export class RobotsService {
     const open = await this.defects.find({
       where: { companyId, resolvedAt: null, replacementRobotId: null },
     })
-    const openDefects = new Map(open.map(defect => [defect.robotId, String(defect._id)]))
-    const models = new Map((await this.models.find()).map(model => [model.key, model]))
+    const openDefects = new Map(open.map((defect) => [defect.robotId, String(defect._id)]))
+    const models = new Map((await this.models.find()).map((model) => [model.key, model]))
     return {
-      items: rows.map(row =>
+      items: rows.map((row) =>
         this.view(
           row,
           live.get(row.platformId ?? '') ?? null,
@@ -126,7 +122,7 @@ export class RobotsService {
     rows: Robot[],
   ): Promise<{ live: Map<string, RobotLive>; source: PlatformSource }> {
     const live = new Map<string, RobotLive>()
-    const ids = rows.flatMap(row => (row.platformId ? [row.platformId] : []))
+    const ids = rows.flatMap((row) => (row.platformId ? [row.platformId] : []))
     if (ids.length === 0) return { live, source: PlatformSource.PLATFORM }
     try {
       const seenAt = new Date()
@@ -174,7 +170,7 @@ export class RobotsService {
    */
   async conditionsOf(robots: Robot[]): Promise<Map<string, RobotCondition>> {
     const result = new Map<string, RobotCondition>()
-    const ids = robots.flatMap(robot => (robot.platformId ? [robot.platformId] : []))
+    const ids = robots.flatMap((robot) => (robot.platformId ? [robot.platformId] : []))
     if (ids.length === 0 || !this.platform.robotConditions) return result
     let found: PlatformCondition[]
     try {
@@ -183,7 +179,7 @@ export class RobotsService {
       if (!isPlatformUnavailable(error)) throw error
       return result
     }
-    const byId = new Map(found.map(item => [item.id, item]))
+    const byId = new Map(found.map((item) => [item.id, item]))
     for (const robot of robots) {
       const condition = robot.platformId ? byId.get(robot.platformId) : undefined
       if (condition) result.set(robot.id, this.condition(robot, condition))
@@ -272,7 +268,7 @@ export class RobotsService {
   /** The next serial number (one more than the highest in use, also by archived robots) */
   async newSerial(): Promise<string> {
     const all = await this.repository.find({ withDeleted: true })
-    return nextSerial(all.map(robot => robot.serial))
+    return nextSerial(all.map((robot) => robot.serial))
   }
 
   /** Puts a robot in the warehouse: built and labelled, waiting to be scanned by a technician (seed and tests) */
@@ -367,7 +363,11 @@ export class RobotsService {
     const model = await this.requireModel(stock.modelId)
     const oldModel = await this.requireModel(old.modelId)
     if (model.kind !== oldModel.kind) {
-      throw new DomainException(409, 'model_mismatch', 'The new robot is not the same kind of robot')
+      throw new DomainException(
+        409,
+        'model_mismatch',
+        'The new robot is not the same kind of robot',
+      )
     }
     const newName = name ?? old.name
     await this.platform.retireRobot(old.platformId!)

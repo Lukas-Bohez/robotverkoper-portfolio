@@ -22,7 +22,7 @@ export class FirebaseService {
     }
     // Verifying ID tokens only needs the project id, no service account
     const app =
-      getApps().find(existing => existing.name === 'seller-api') ??
+      getApps().find((existing) => existing.name === 'seller-api') ??
       initializeApp({ projectId: config.firebaseProjectId }, 'seller-api')
     this.auth = getAuth(app)
   }

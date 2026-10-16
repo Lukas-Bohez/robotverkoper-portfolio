@@ -51,7 +51,9 @@ const migration: Migration = {
         { $set: { roleKey: '$role' } },
         { $unset: 'role' },
       ])
-    await db.collection('accounts').updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
+    await db
+      .collection('accounts')
+      .updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
 
     // 3. Companies and robots: the id of the platform is `platformId`; both can be archived
     for (const name of ['companies', 'robots']) {
@@ -61,7 +63,9 @@ const migration: Migration = {
           { $set: { platformId: '$id' } },
           { $unset: 'id' },
         ])
-      await db.collection(name).updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
+      await db
+        .collection(name)
+        .updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
     }
     await dropIndexIfExists(db, 'companies', 'companies_id')
     await dropIndexIfExists(db, 'robots', 'robots_id')
@@ -71,22 +75,34 @@ const migration: Migration = {
     // 4. Robot models are found by their key
     await db
       .collection('robot_models')
-      .updateMany({ key: { $exists: false }, id: { $exists: true } }, [{ $set: { key: '$id' } }, { $unset: 'id' }])
+      .updateMany({ key: { $exists: false }, id: { $exists: true } }, [
+        { $set: { key: '$id' } },
+        { $unset: 'id' },
+      ])
 
     // 5. Robots: a serial number (RBT- and six digits, in the order they were made), a company that may be empty
     // (a robot in the warehouse) and a place
-    const robots = await db.collection('robots').find({ serial: { $exists: false } }).sort({ createdAt: 1 }).toArray()
+    const robots = await db
+      .collection('robots')
+      .find({ serial: { $exists: false } })
+      .sort({ createdAt: 1 })
+      .toArray()
     const highest = await db
       .collection('robots')
       .find({ serial: { $exists: true } })
       .toArray()
-      .then(found => found.reduce((max, robot) => Math.max(max, Number(String(robot.serial).slice(4)) || 0), 0))
+      .then((found) =>
+        found.reduce((max, robot) => Math.max(max, Number(String(robot.serial).slice(4)) || 0), 0),
+      )
     let number = highest
     for (const robot of robots) {
       number += 1
       await db
         .collection('robots')
-        .updateOne({ _id: robot._id }, { $set: { serial: `RBT-${String(number).padStart(6, '0')}`, location: null } })
+        .updateOne(
+          { _id: robot._id },
+          { $set: { serial: `RBT-${String(number).padStart(6, '0')}`, location: null } },
+        )
     }
 
     // 6. The log: `at` is `createdAt`, and an entry can move to cold storage
@@ -96,20 +112,32 @@ const migration: Migration = {
         { $set: { createdAt: '$at', coldAt: null } },
         { $unset: 'at' },
       ])
-    await db.collection('audit').updateMany({ coldAt: { $exists: false } }, { $set: { coldAt: null } })
+    await db
+      .collection('audit')
+      .updateMany({ coldAt: { $exists: false } }, { $set: { coldAt: null } })
 
     // 7. Indexes: the new keys are unique, and the lists we filter on are indexed
-    await db.collection('seller_roles').createIndex({ key: 1 }, { unique: true, name: 'seller_roles_key' })
-    await db.collection('robot_models').createIndex({ key: 1 }, { unique: true, name: 'robot_models_key' })
+    await db
+      .collection('seller_roles')
+      .createIndex({ key: 1 }, { unique: true, name: 'seller_roles_key' })
+    await db
+      .collection('robot_models')
+      .createIndex({ key: 1 }, { unique: true, name: 'robot_models_key' })
     await db
       .collection('companies')
       .createIndex({ platformId: 1 }, { unique: true, name: 'companies_platform_id' })
-    await db.collection('robots').createIndex({ serial: 1 }, { unique: true, name: 'robots_serial' })
+    await db
+      .collection('robots')
+      .createIndex({ serial: 1 }, { unique: true, name: 'robots_serial' })
     await db
       .collection('robots')
       .createIndex(
         { platformId: 1 },
-        { unique: true, name: 'robots_platform_id', partialFilterExpression: { platformId: { $type: 'string' } } },
+        {
+          unique: true,
+          name: 'robots_platform_id',
+          partialFilterExpression: { platformId: { $type: 'string' } },
+        },
       )
     await db
       .collection('robots')

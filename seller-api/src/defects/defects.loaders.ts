@@ -14,8 +14,8 @@ async function byPlatformIds<T extends { platformId: string | null }>(
     where: { platformId: { $in: [...ids] } } as never,
     withDeleted: true,
   })
-  const byId = new Map(found.map(item => [item.platformId, item]))
-  return ids.map(id => byId.get(id) ?? null)
+  const byId = new Map(found.map((item) => [item.platformId, item]))
+  return ids.map((id) => byId.get(id) ?? null)
 }
 
 /**
@@ -28,7 +28,7 @@ export class RobotsLoader {
   private readonly loader: DataLoader<string, Robot | null>
 
   constructor(@InjectRepository(Robot) repository: MongoRepository<Robot>) {
-    this.loader = new DataLoader(ids => byPlatformIds(repository, ids))
+    this.loader = new DataLoader((ids) => byPlatformIds(repository, ids))
   }
 
   load(platformId: string): Promise<Robot | null> {
@@ -41,7 +41,7 @@ export class CompaniesLoader {
   private readonly loader: DataLoader<string, Company | null>
 
   constructor(@InjectRepository(Company) repository: MongoRepository<Company>) {
-    this.loader = new DataLoader(ids => byPlatformIds(repository, ids))
+    this.loader = new DataLoader((ids) => byPlatformIds(repository, ids))
   }
 
   load(platformId: string): Promise<Company | null> {

@@ -19,7 +19,9 @@ export function coldCutoff(now: Date, months: number = COLD_AFTER_MONTHS): Date 
   // Day 1 first: 31 March minus one month must be the end of February, not 3 March (JavaScript carries over)
   cutoff.setUTCDate(1)
   cutoff.setUTCMonth(cutoff.getUTCMonth() - months)
-  const lastDay = new Date(Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0)).getUTCDate()
+  const lastDay = new Date(
+    Date.UTC(cutoff.getUTCFullYear(), cutoff.getUTCMonth() + 1, 0),
+  ).getUTCDate()
   cutoff.setUTCDate(Math.min(day, lastDay))
   return cutoff
 }
@@ -37,7 +39,10 @@ export class ColdStorageService {
   ) {}
 
   /** Moves what is older than `months` months to cold storage. Safe to run again: it only moves what is still warm. */
-  async moveOldData(now = new Date(), months: number = COLD_AFTER_MONTHS): Promise<ColdStorageMoved> {
+  async moveOldData(
+    now = new Date(),
+    months: number = COLD_AFTER_MONTHS,
+  ): Promise<ColdStorageMoved> {
     const cutoff = coldCutoff(now, months)
     const defects = await this.defects.updateMany(
       { resolvedAt: { $lt: cutoff }, coldAt: null },

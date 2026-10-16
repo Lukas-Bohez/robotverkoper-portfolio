@@ -14,4 +14,4 @@ export const toObjectId = (id: string): ObjectId => {
 
 /** Like toObjectId, for a list of ids; an id that is not valid is left out (the document cannot exist) */
 export const toObjectIds = (ids: readonly string[]): ObjectId[] =>
-  ids.filter(id => ObjectId.isValid(id)).map(id => new ObjectId(id))
+  ids.filter((id) => ObjectId.isValid(id)).map((id) => new ObjectId(id))
