@@ -12,16 +12,43 @@ export interface Company {
   createdAt: string
 }
 
+/** The name of a role per language (nl, en, fr, de); a language may be left out */
+export type Names = Partial<Record<'nl' | 'en' | 'fr' | 'de', string>>
+const LANGUAGES = ['nl', 'en', 'fr', 'de'] as const
+
 export interface Role {
   id: string
   companyId: string
   name: string
+  /** The name in the other languages: the seller part shows it in the language of the person */
+  names: Names | null
   permissions: string[]
-  /** The administrator role of a company: all rights, cannot be changed or removed */
+  /** The administrator role of a company: all rights, cannot be changed or archived */
   locked: boolean
+  /** Soft delete: an archived role is kept and can be restored */
+  archivedAt: string | null
 }
 
 export type ModelKind = 'FOOD' | 'PARCEL'
+
+export type LidState = 'LOCKED' | 'UNLOCKED' | 'OPEN'
+
+/** What a technician wants to know about a robot besides its battery: food inside, tilt, lid, error, place */
+export interface Condition {
+  tilted: boolean
+  tiltDegrees: number | null
+  hasCargo: boolean
+  cargoSummary: string | null
+  /** Since when the cargo is inside (ISO date) */
+  cargoSince: string | null
+  compartmentTemp: number | null
+  lid: LidState
+  errorCode: string | null
+  errorText: string | null
+  location: { country: string; address: string; longitude: number; latitude: number } | null
+}
+
+const LIDS: readonly string[] = ['LOCKED', 'UNLOCKED', 'OPEN']
 
 export interface Robot {
   id: string
@@ -38,6 +65,8 @@ export interface Robot {
   /** Set by hand (a demo of "the robot goes offline") until the robot reports itself again */
   pinned: boolean
   retired: boolean
+  /** The condition the robot reported (or that was set by hand); null while nothing is known */
+  condition: Condition | null
   createdAt: string
 }
 
@@ -110,12 +139,12 @@ export class PlatformState {
 
   /** Every company starts with an administrator and a staff role, like the real platform */
   private addDefaultRoles(companyId: string): void {
-    const defaults: [string, string[], boolean][] = [
-      ['TENANT_ADMIN', [...PERMISSIONS], true],
-      ['Personeel', ['orders:read'], false],
+    const defaults: [string, Names | null, string[], boolean][] = [
+      ['TENANT_ADMIN', null, [...PERMISSIONS], true],
+      ['Personeel', { nl: 'Personeel', en: 'Staff', fr: 'Personnel', de: 'Personal' }, ['orders:read'], false],
     ]
-    for (const [name, permissions, locked] of defaults) {
-      const role: Role = { id: randomUUID(), companyId, name, permissions, locked }
+    for (const [name, names, permissions, locked] of defaults) {
+      const role: Role = { id: randomUUID(), companyId, name, names, permissions, locked, archivedAt: null }
       this.roles.set(role.id, role)
     }
   }
@@ -146,43 +175,90 @@ export class PlatformState {
     return company
   }
 
-  createRole(companyId: string, input: Record<string, unknown>): Role {
-    this.company(companyId)
-    const name = text(input.name, 'name', 2, 40)
-    const permissions = input.permissions
-    if (!Array.isArray(permissions) || permissions.some((key) => typeof key !== 'string')) {
+  /** The permission list of a request: known keys only, each once */
+  private permissionsOf(value: unknown): string[] {
+    if (!Array.isArray(value) || value.some((key) => typeof key !== 'string')) {
       throw new HttpError(400, 'invalid_input', 'permissions is a list of permission keys')
     }
-    const unknown = (permissions as string[]).filter((key) => !isPermission(key))
+    const unknown = (value as string[]).filter((key) => !isPermission(key))
     if (unknown.length > 0) {
       throw new HttpError(400, 'unknown_permission', `Unknown permission: ${unknown.join(', ')}`)
     }
+    return [...new Set(value as string[])]
+  }
+
+  /** The names per language: only the languages that have a text (1-40 characters) */
+  private namesOf(value: unknown): Names | null {
+    if (value === undefined || value === null) return null
+    if (typeof value !== 'object' || Array.isArray(value)) {
+      throw new HttpError(400, 'invalid_input', 'names is an object with nl, en, fr and de')
+    }
+    const names: Names = {}
+    for (const language of LANGUAGES) {
+      const given = (value as Record<string, unknown>)[language]
+      if (given === undefined || given === null || given === '') continue
+      names[language] = text(given, `names.${language}`, 1, 40)
+    }
+    return Object.keys(names).length > 0 ? names : null
+  }
+
+  createRole(companyId: string, input: Record<string, unknown>): Role {
+    this.company(companyId)
+    const name = text(input.name, 'name', 2, 40)
+    const permissions = this.permissionsOf(input.permissions)
+    const names = this.namesOf(input.names)
+    // A name stays taken by an archived role too: bring that one back instead of making a second
     for (const role of this.roles.values()) {
       if (role.companyId === companyId && role.name.toLowerCase() === name.toLowerCase()) {
         throw new HttpError(409, 'role_exists', `The role "${name}" already exists`)
       }
     }
-    const role: Role = {
-      id: randomUUID(),
-      companyId,
-      name,
-      permissions: [...new Set(permissions as string[])],
-      locked: false,
-    }
+    const role: Role = { id: randomUUID(), companyId, name, names, permissions, locked: false, archivedAt: null }
     this.roles.set(role.id, role)
     return role
   }
 
-  deleteRole(companyId: string, roleId: string): void {
+  private role(companyId: string, roleId: string): Role {
     const role = this.roles.get(roleId)
     if (!role || role.companyId !== companyId) throw new HttpError(404, 'role_not_found', 'This role does not exist')
-    if (role.locked) throw new HttpError(409, 'role_locked', 'The administrator role cannot be removed')
-    this.roles.delete(roleId)
+    return role
   }
 
-  rolesOf(companyId: string): Role[] {
+  /** Changes the name, the names per language and/or the rights; the administrator role cannot be changed */
+  updateRole(companyId: string, roleId: string, input: Record<string, unknown>): Role {
+    const role = this.role(companyId, roleId)
+    if (role.locked) throw new HttpError(409, 'role_locked', 'The administrator role cannot be changed')
+    if (input.name !== undefined) {
+      const name = text(input.name, 'name', 2, 40)
+      const taken = [...this.roles.values()].some(
+        (other) => other.id !== role.id && other.companyId === companyId && other.name.toLowerCase() === name.toLowerCase(),
+      )
+      if (taken) throw new HttpError(409, 'role_exists', `The role "${name}" already exists`)
+      role.name = name
+    }
+    if (input.names !== undefined) role.names = this.namesOf(input.names)
+    if (input.permissions !== undefined) role.permissions = this.permissionsOf(input.permissions)
+    return role
+  }
+
+  /** Soft delete: the role is kept and can be restored. Calling it twice is fine. */
+  archiveRole(companyId: string, roleId: string): Role {
+    const role = this.role(companyId, roleId)
+    if (role.locked) throw new HttpError(409, 'role_locked', 'The administrator role cannot be archived')
+    role.archivedAt ??= this.now().toISOString()
+    return role
+  }
+
+  restoreRole(companyId: string, roleId: string): Role {
+    const role = this.role(companyId, roleId)
+    role.archivedAt = null
+    return role
+  }
+
+  /** The roles of a company; archived ones only when asked for */
+  rolesOf(companyId: string, withArchived = false): Role[] {
     this.company(companyId)
-    return [...this.roles.values()].filter((role) => role.companyId === companyId)
+    return [...this.roles.values()].filter((role) => role.companyId === companyId && (withArchived || !role.archivedAt))
   }
 
   /** Registers a robot and hands out its key: the only time the key is visible */
@@ -207,6 +283,7 @@ export class PlatformState {
       lastSeenAt: null,
       pinned: false,
       retired: false,
+      condition: null,
       createdAt: this.now().toISOString(),
     }
     this.robots.set(robot.id, robot)
@@ -225,6 +302,100 @@ export class PlatformState {
     robot.retired = true
     robot.online = false
     return robot
+  }
+
+  /** Takes a retired robot back into service: its key works again (the robot reports itself to come online) */
+  reinstate(id: string): Robot {
+    const robot = this.robot(id)
+    robot.retired = false
+    return robot
+  }
+
+  /**
+   * What the robot reports about itself besides its battery (or what a demo sets by hand): tilt, food inside, lid,
+   * temperature, error and place. Only the fields that are given change; the rest stays as it was.
+   */
+  setCondition(id: string, input: Record<string, unknown>): Condition {
+    const robot = this.robot(id)
+    const before: Condition = robot.condition ?? {
+      tilted: false,
+      tiltDegrees: null,
+      hasCargo: false,
+      cargoSummary: null,
+      cargoSince: null,
+      compartmentTemp: null,
+      lid: 'LOCKED',
+      errorCode: null,
+      errorText: null,
+      location: null,
+    }
+    const next: Condition = { ...before }
+    const has = (key: string) => input[key] !== undefined
+    const flag = (key: string): boolean => {
+      if (typeof input[key] !== 'boolean') throw new HttpError(400, 'invalid_input', `${key} is true or false`)
+      return input[key]
+    }
+    const number = (key: string, min: number, max: number): number | null => {
+      if (input[key] === null) return null
+      const value = input[key]
+      if (typeof value !== 'number' || !Number.isFinite(value) || value < min || value > max) {
+        throw new HttpError(400, 'invalid_input', `${key} is a number from ${min} to ${max}`)
+      }
+      return value
+    }
+    const words = (key: string, max: number): string | null => (input[key] === null ? null : text(input[key], key, 1, max))
+
+    if (has('tilted')) next.tilted = flag('tilted')
+    if (has('tiltDegrees')) next.tiltDegrees = number('tiltDegrees', 0, 180)
+    if (has('hasCargo')) next.hasCargo = flag('hasCargo')
+    if (has('cargoSummary')) next.cargoSummary = words('cargoSummary', 200)
+    if (has('compartmentTemp')) next.compartmentTemp = number('compartmentTemp', -40, 100)
+    if (has('errorCode')) next.errorCode = words('errorCode', 20)
+    if (has('errorText')) next.errorText = words('errorText', 200)
+    if (has('lid')) {
+      if (typeof input.lid !== 'string' || !LIDS.includes(input.lid)) {
+        throw new HttpError(400, 'invalid_input', 'lid is LOCKED, UNLOCKED or OPEN')
+      }
+      next.lid = input.lid as LidState
+    }
+    if (has('location')) {
+      const place = input.location as Record<string, unknown> | null
+      if (place === null) next.location = null
+      else {
+        if (typeof place !== 'object' || Array.isArray(place)) {
+          throw new HttpError(400, 'invalid_input', 'location is an object or null')
+        }
+        const longitude = place.longitude
+        const latitude = place.latitude
+        const valid =
+          typeof longitude === 'number' && longitude >= -180 && longitude <= 180 &&
+          typeof latitude === 'number' && latitude >= -90 && latitude <= 90
+        if (!valid) {
+          throw new HttpError(400, 'invalid_input', 'location needs a longitude (-180 to 180) and a latitude (-90 to 90)')
+        }
+        next.location = {
+          country: text(place.country ?? 'BE', 'location.country', 2, 2).toUpperCase(),
+          address: text(place.address ?? '', 'location.address', 1, 200),
+          longitude,
+          latitude,
+        }
+      }
+    }
+    // Since when the food is inside: kept while it stays, set when it arrives, gone when it is taken out
+    if (has('cargoSince')) next.cargoSince = input.cargoSince === null ? null : text(input.cargoSince, 'cargoSince', 10, 40)
+    else if (next.hasCargo && !before.hasCargo) next.cargoSince = this.now().toISOString()
+    if (!next.hasCargo) next.cargoSince = null
+    if (!next.tilted) next.tiltDegrees = null
+    robot.condition = next
+    return next
+  }
+
+  /** The condition of the robots that have one (a robot that never reported one is left out) */
+  conditions(ids: string[]): ({ id: string } & Condition)[] {
+    return ids.flatMap((id) => {
+      const robot = this.robots.get(id)
+      return robot?.condition ? [{ id, ...robot.condition }] : []
+    })
   }
 
   /** What a robot reports itself: used by a demo to play "the robot goes offline" */
@@ -253,9 +424,17 @@ export class PlatformState {
 
   restore(snapshot: Snapshot): void {
     for (const company of snapshot.companies) this.companies.set(company.id, company)
-    for (const role of snapshot.roles) this.roles.set(role.id, role)
+    for (const role of snapshot.roles) {
+      this.roles.set(role.id, { ...role, names: role.names ?? null, archivedAt: role.archivedAt ?? null })
+    }
     for (const robot of snapshot.robots) {
-      this.robots.set(robot.id, { ...robot, keyHash: robot.keyHash ?? '', lastSeenAt: robot.lastSeenAt ?? null, pinned: robot.pinned ?? false })
+      this.robots.set(robot.id, {
+        ...robot,
+        keyHash: robot.keyHash ?? '',
+        lastSeenAt: robot.lastSeenAt ?? null,
+        pinned: robot.pinned ?? false,
+        condition: robot.condition ?? null,
+      })
     }
   }
 
@@ -308,7 +487,10 @@ export function createPlatformSimulator(options: SimulatorOptions): { server: Se
     {
       method: 'GET',
       pattern: /^\/companies\/([^/]+)\/roles$/,
-      handler: (m) => ({ status: 200, body: state.rolesOf(m[1] ?? '') }),
+      handler: (m, _b, url) => ({
+        status: 200,
+        body: state.rolesOf(m[1] ?? '', url.searchParams.get('withArchived') === 'true'),
+      }),
     },
     {
       method: 'POST',
@@ -316,12 +498,40 @@ export function createPlatformSimulator(options: SimulatorOptions): { server: Se
       handler: (m, body) => ({ status: 201, body: state.createRole(m[1] ?? '', body) }),
     },
     {
-      method: 'DELETE',
+      method: 'PATCH',
       pattern: /^\/companies\/([^/]+)\/roles\/([^/]+)$/,
+      handler: (m, body) => ({ status: 200, body: state.updateRole(m[1] ?? '', m[2] ?? '', body) }),
+    },
+    {
+      method: 'POST',
+      pattern: /^\/companies\/([^/]+)\/roles\/([^/]+)\/archive$/,
+      handler: (m) => ({ status: 200, body: state.archiveRole(m[1] ?? '', m[2] ?? '') }),
+    },
+    {
+      method: 'POST',
+      pattern: /^\/companies\/([^/]+)\/roles\/([^/]+)\/restore$/,
+      handler: (m) => ({ status: 200, body: state.restoreRole(m[1] ?? '', m[2] ?? '') }),
+    },
+    {
+      method: 'POST',
+      pattern: /^\/robots\/([^/]+)\/reinstate$/,
       handler: (m) => {
-        state.deleteRole(m[1] ?? '', m[2] ?? '')
-        return { status: 204, body: null }
+        const robot = state.reinstate(m[1] ?? '')
+        return { status: 200, body: { id: robot.id, retired: false } }
       },
+    },
+    {
+      method: 'GET',
+      pattern: /^\/robots\/conditions$/,
+      handler: (_m, _b, url) => {
+        const ids = (url.searchParams.get('ids') ?? '').split(',').filter(Boolean)
+        return { status: 200, body: state.conditions(ids) }
+      },
+    },
+    {
+      method: 'PUT',
+      pattern: /^\/robots\/([^/]+)\/condition$/,
+      handler: (m, body) => ({ status: 200, body: state.setCondition(m[1] ?? '', body) }),
     },
     {
       method: 'POST',
@@ -396,7 +606,8 @@ export function createPlatformSimulator(options: SimulatorOptions): { server: Se
       if (!match) continue
       pathMatched = true
       if (route.method !== req.method) continue
-      const body = req.method === 'POST' ? await readJson(req) : {}
+      const hasBody = req.method === 'POST' || req.method === 'PUT' || req.method === 'PATCH'
+      const body = hasBody ? await readJson(req) : {}
       const result = route.handler(match, body, url)
       if (req.method !== 'GET') options.onChange?.(state.snapshot())
       if (result.status === 204) {

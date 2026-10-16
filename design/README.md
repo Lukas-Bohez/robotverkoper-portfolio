@@ -66,6 +66,7 @@ Elke popup is een vrij frame met een gedimde pagina erachter, zoals 05 en 10. Op
 | P7 | Meer acties (telefoon) | Vanuit 18: vervangen, sluiten, hulp vragen, route openen |
 | P8 | Hulp vragen (telefoon) | Een collega of de beheerder krijgt een melding |
 | P9 | Taal kiezen (telefoon) | EN, NL, FR en DE |
+| P10 | Rol kiezen (dropdown geopend) | Laat zien wat er gebeurt als je in 09 op het veld Rol klikt |
 
 ### Desktop
 
@@ -117,6 +118,7 @@ Elke popup is een vrij frame met een gedimde pagina erachter, zoals 05 en 10. Op
 | --- | --- | --- |
 | ![P1 Technieker oproepen](popup-1-technieker-oproepen.png) | ![P2 Account archiveren](popup-2-account-archiveren.png) | ![P3 Herstellen](popup-3-herstellen.png) |
 | ![P4 Defect sluiten](popup-4-defect-sluiten.png) | ![P5 Rol kopiëren](popup-5-rol-kopieren.png) | ![P6 QR-code](popup-6-qr-code.png) |
+| ![P10 Rol kiezen](popup-10-rol-kiezen.png) | | |
 
 <p>
 <img src="popup-7-meer-acties-telefoon.png" width="190" alt="P7 Meer acties">
@@ -141,7 +143,8 @@ De donkere schermen zijn dezelfde schermen met de modus **Dark** van de Semantic
 - **60-30-10.** 60% rustige neutrale vlakken, 30% structuur (tekst, randen), 10% accent: de primaire actie valt altijd op.
 - **Contrast (WCAG 2.1 AA).** Elke tekstkleur is gecontroleerd op zijn achtergrond, in Light en in Dark (de tabel staat in het designsysteem). Tekst op een zachte achtergrond heeft eigen tokens (`*-text`) die in de donkere modus lichter zijn.
 - **Tekststijlen.** Heading/Page 32, Heading/Section 24, Heading/Card 20, Body/Default 16 (en Body/Medium en Body/Strong), Body/Small 14, Label/Default 14, Caption 12 (en Caption/Medium). Elke tekst gebruikt een stijl.
-- **Auto layout** overal, behalve in de schermen met een popup over een gedimde pagina (05, 10, 14 en P1 tot P9), die bewust vrije frames zijn.
+- **Auto layout** overal, behalve in de schermen met een popup over een gedimde pagina (05, 10, 14 en P1 tot P10), die bewust vrije frames zijn.
+- **Een keuze is een dropdown, nooit een tekstveld.** Waar iemand uit bekende waarden kiest (een rol, een bedrijf, het model, hoe erg, hoe opgelost, een extra recht), staat een **Select** met een pijltje. Een tekstveld (**Field**) blijft alleen waar iemand echt iets schrijft: een naam, een e-mailadres, een omschrijving. Reden (feedback leerkrachten, 16/10): een tekstveld als `area:actie` is voor een klant onbegrijpelijk. De extra rechten in 14 heten daarom *Facturen exporteren*, niet `exports:invoices`.
 - **Iconen** zijn SVG's van één set (Lucide-vormen, 24 px, lijn van 2 px) in de kleur van de tekst ernaast. Een icoon staat nooit alleen: er staat altijd een woord bij.
 
 ## De componenten
@@ -167,6 +170,7 @@ Elk scherm gebruikt **instances** van deze componenten (meer dan 780 in totaal),
 | **TaskCard** | `state` open, enroute, onsite; `cargo` yes, no: een defect in het dashboard van de technicus | ![TaskCard](component-taskcard.png) |
 | **BottomNav** | `active` taken, defecten, scan, meer: het menu van de technicus op een telefoon | ![BottomNav](component-bottomnav.png) |
 | **Stepper** | `step` 1, 2, 3: de stappen van het vervangen met QR | ![Stepper](component-stepper.png) |
+| **Select** | `state` closed, open; `hint` yes, no: een dropdown (rol, bedrijf, model, ernst). Open toont de lijst met het gekozen item aangevinkt | ![Select](component-select.png) |
 | **Dialog** | `device` desktop of phone; `tone` default of danger: een bevestiging als popup of sheet | ![Dialog](component-dialog.png) |
 
 ## Inspiratie

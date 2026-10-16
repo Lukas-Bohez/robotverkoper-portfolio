@@ -112,6 +112,36 @@ describe('the robot side (/graphql)', () => {
     assert.equal(json.errors[0].message, 'battery is required')
   })
 
+  test('a robot that reports its condition shows it to the seller: tilt, food inside, lid and place', async () => {
+    const robot = await newRobot('FOOD')
+    const mutation = 'mutation ReportCondition($input: ConditionInput!) { reportCondition(input: $input) }'
+    const report = await robotCall(robot.apiKey, mutation, {
+      input: {
+        tilted: true,
+        tiltDegrees: 35,
+        hasCargo: true,
+        cargoSummary: 'Bestelling 5B57B0',
+        lid: 'LOCKED',
+        location: { country: 'BE', address: 'Marksesteenweg 58, Kortrijk', longitude: 3.2647, latitude: 50.8283 },
+      },
+    })
+    assert.deepEqual(report.json.data, { reportCondition: true })
+    const [condition] = (await platform('GET', `/robots/conditions?ids=${robot.id}`)).json
+    assert.equal(condition.tilted, true)
+    assert.equal(condition.hasCargo, true)
+    assert.equal(condition.location.address, 'Marksesteenweg 58, Kortrijk')
+  })
+
+  test('refuses a condition that does not make sense, with a clear message (and keeps what it had)', async () => {
+    const robot = await newRobot('FOOD')
+    const mutation = 'mutation ReportCondition($input: ConditionInput!) { reportCondition(input: $input) }'
+    const bad = await robotCall(robot.apiKey, mutation, { input: { tiltDegrees: 999 } })
+    assert.match(bad.json.errors[0].message, /tiltDegrees is a number from 0 to 180/)
+    assert.deepEqual((await platform('GET', `/robots/conditions?ids=${robot.id}`)).json, [])
+    const none = await robotCall(null, mutation, { input: { tilted: true } })
+    assert.equal(none.json.errors[0].message, 'Invalid API key')
+  })
+
   test('a retired robot can no longer connect', async () => {
     const robot = await newRobot()
     await platform('POST', `/robots/${robot.id}/retire`, {})

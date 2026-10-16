@@ -49,6 +49,16 @@ export function handleRobotGraphql(state: PlatformState, apiKey: string, body: R
     state.report(robot, battery)
     return { data: { reportTelemetry: true } }
   }
+  // What the robot knows about itself besides its battery: tilt, food inside, lid, temperature, error and place
+  if (/\breportCondition\b/.test(query)) {
+    const input = (variables.input ?? {}) as Record<string, unknown>
+    try {
+      state.setCondition(robot.id, input)
+    } catch (error) {
+      return failure(error instanceof Error ? error.message : 'The condition is not valid')
+    }
+    return { data: { reportCondition: true } }
+  }
   if (/\back(nowledge)?RobotCommand\b/.test(query)) return { data: { ackRobotCommand: true } }
   if (/\bpendingRobotCommands\b/.test(query)) return { data: { pendingRobotCommands: [] } }
   if (/\bmyActiveTrip\b/.test(query)) return { data: { myActiveTrip: null } }
