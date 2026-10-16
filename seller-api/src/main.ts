@@ -1,55 +1,29 @@
-import { existsSync } from 'node:fs'
-import { DevTokenVerifier, FirebaseTokenVerifier, type TokenVerifier } from './auth.ts'
-import { createSellerApi } from './app.ts'
-import { loadConfig } from './config.ts'
-import { openDatabase } from './db.ts'
-import { HttpPlatformGateway } from './platform.ts'
-import { seedDemo, seedModels } from './seed.ts'
-import { SellerService } from './service.ts'
-import { SellerStore } from './store.ts'
+import { Logger } from '@nestjs/common'
+import { NestFactory } from '@nestjs/core'
+import { AppModule } from './app.module.js'
+import { applySecurity } from './common/security/app-security.js'
+import { APP_CONFIG, type AppConfig } from './config/app-config.js'
+import { DatabaseVersionService } from './database/database-version.service.js'
+import { SeedService } from './seed/seed.service.js'
 
-// A .env next to package.json is optional: the environment wins
-if (existsSync('.env')) process.loadEnvFile('.env')
+async function bootstrap() {
+  const app = await NestFactory.create(AppModule)
+  const config = app.get<AppConfig>(APP_CONFIG)
+  applySecurity(app, config.corsOrigins) // CORS and Helmet
 
-const config = loadConfig()
-const store = new SellerStore(openDatabase(config.dbPath))
-seedModels(store)
+  // The database first: migrations, then the robot models (and in the demo the demo data)
+  await app.get(DatabaseVersionService).migrate()
+  try {
+    await app.get(SeedService).seedAll()
+  } catch (error) {
+    // A platform that does not answer yet must not stop the API: the demo data can be added later (`npm run cli -- seed`)
+    new Logger('Seed').error(`Seeding failed: ${error instanceof Error ? error.message : String(error)}`)
+  }
 
-const gateway = new HttpPlatformGateway({ baseUrl: config.platformUrl, token: config.platformToken })
-const service = new SellerService(store, gateway, {
-  sellerAdminEmails: config.sellerAdminEmails,
-  robotApiUrl: config.robotApiUrl,
-})
-
-const verifier: TokenVerifier =
-  config.authMode === 'dev'
-    ? new DevTokenVerifier()
-    : new FirebaseTokenVerifier({
-        projectId: config.firebaseProjectId!,
-        requireVerifiedEmail: config.requireVerifiedEmail,
-      })
-
-const server = createSellerApi({ service, verifier, corsOrigins: config.corsOrigins, log: (line) => console.log(line) })
-
-server.listen(config.port, config.host, () => {
-  console.log(`Seller API on http://${config.host}:${config.port}`)
-  console.log(`  database: ${config.dbPath}`)
-  console.log(`  platform: ${config.platformUrl} (robots connect to ${config.robotApiUrl})`)
-  console.log(`  login:    ${config.authMode === 'dev' ? 'DEV tokens (local demo only)' : `Firebase project ${config.firebaseProjectId}`}`)
-  console.log(`  admins:   ${config.sellerAdminEmails.join(', ') || '(none: add them in SELLER_ADMIN_EMAILS)'}`)
-})
-
-if (config.seedDemo) {
-  // The platform simulator may still be starting: try for a while
-  void (async () => {
-    for (let attempt = 1; attempt <= 20; attempt++) {
-      try {
-        await seedDemo(service, store, gateway, (line) => console.log(line))
-        return
-      } catch {
-        await new Promise((resolve) => setTimeout(resolve, 1500))
-      }
-    }
-    console.warn('Demo seed skipped: the platform did not answer')
-  })()
+  await app.listen(config.port, config.host)
+  const log = new Logger('seller-api')
+  log.log(`GraphQL on ${await app.getUrl()}/graphql`)
+  log.log(`Auth: ${config.authMode}. Administrators: ${config.sellerAdminEmails.join(', ') || '(none: set SELLER_ADMIN_EMAILS)'}`)
+  log.log(`Platform: ${config.platformUrl}. Database: ${config.mongodbUri.replace(/\/\/[^@]*@/, '//***@')}`)
 }
+await bootstrap()
