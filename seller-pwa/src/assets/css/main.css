@@ -1,5 +1,136 @@
 @import "tailwindcss";
 @import "@nuxt/ui";
+@import "@fontsource-variable/inter";
+
+/*
+ * The design of the seller platform lives in Figma (Lukas/Advanced Fullstack Development.fig, pictures in
+ * Lukas/design/). Everything below follows it: the same font, the same tokens, the same sizes.
+ *
+ *   Figma variable            CSS variable             Light      Dark
+ *   semantic/surface/muted    --figma-surface-muted    #f8fafc    #0f172a   (the page)
+ *   semantic/surface/default  --figma-surface          #ffffff    #1e293b   (cards, header, fields)
+ *   semantic/surface/code     --figma-surface-code     #f1f5f9    #0f172a
+ *   semantic/border/default   --figma-border           #e2e8f0    #334155
+ *   semantic/text/primary     --figma-text             #0f172a    #f8fafc
+ *   semantic/text/muted       --figma-text-muted       #5b6b82    #e2e8f0
+ *   semantic/action/primary   --figma-primary          #4f46e5    #4f46e5
+ *   ... and the soft and text variants of primary, danger, success and warning.
+ */
+
+@theme static {
+  --font-sans: "Inter Variable", ui-sans-serif, system-ui, sans-serif;
+
+  /* The text styles of Figma: size / line height */
+  --text-page: 2rem; /* Heading/Page 32 */
+  --text-page--line-height: 1.25;
+  --text-section: 1.5rem; /* Heading/Section 24 */
+  --text-section--line-height: 1.3333;
+  --text-card: 1.25rem; /* Heading/Card 20 */
+  --text-card--line-height: 1.4;
+  --text-body: 1rem; /* Body/Default 16 */
+  --text-body--line-height: 1.5;
+  --text-small: 0.875rem; /* Body/Small 14 and Label/Default 14 */
+  --text-small--line-height: 1.4286;
+  --text-caption: 0.75rem; /* Caption 12 */
+  --text-caption--line-height: 1.3333;
+}
+
+:root {
+  --figma-surface-muted: #f8fafc;
+  --figma-surface: #ffffff;
+  --figma-surface-code: #f1f5f9;
+  --figma-border: #e2e8f0;
+  --figma-text: #0f172a;
+  --figma-text-muted: #5b6b82;
+  --figma-primary: #4f46e5;
+  --figma-primary-soft: #eef2ff;
+  --figma-primary-text: #4f46e6;
+  --figma-on-primary: #fefeff;
+  --figma-danger: #dc2626;
+  --figma-danger-soft: #fef2f2;
+  --figma-danger-text: #b91c1c;
+  --figma-success: #00674d;
+  --figma-success-soft: #f0fdf4;
+  --figma-success-text: #15803d;
+  --figma-warning: #b45309;
+  --figma-warning-soft: #fffbeb;
+  --figma-warning-text: #b45309;
+  --figma-dim: #0f172a99;
+
+  /* What Nuxt UI calls its tokens, set to the values of the design */
+  --ui-radius: 0.5rem; /* radius/sm 8; cards use radius/md 16 */
+  --ui-primary: var(--figma-primary);
+  --ui-error: var(--figma-danger);
+  --ui-success: var(--figma-success-text);
+  --ui-warning: var(--figma-warning);
+  --ui-text: var(--figma-text);
+  --ui-text-highlighted: var(--figma-text);
+  --ui-text-toned: var(--figma-text);
+  --ui-text-muted: var(--figma-text-muted);
+  --ui-text-dimmed: var(--figma-text-muted);
+  --ui-text-inverted: var(--figma-on-primary);
+  --ui-bg: var(--figma-surface);
+  --ui-bg-muted: var(--figma-surface-muted);
+  --ui-bg-elevated: var(--figma-surface-code);
+  --ui-bg-accented: var(--figma-border);
+  --ui-border: var(--figma-border);
+  --ui-border-muted: var(--figma-border);
+  --ui-border-accented: var(--figma-border);
+}
+
+.dark {
+  --figma-surface-muted: #0f172a;
+  --figma-surface: #1e293b;
+  --figma-surface-code: #0f172a;
+  --figma-border: #334155;
+  --figma-text: #f8fafc;
+  --figma-text-muted: #e2e8f0;
+  --figma-primary-soft: #1e1b4b;
+  --figma-primary-text: #a5b4fc;
+  --figma-danger-soft: #450a0a;
+  --figma-danger-text: #f87171;
+  --figma-success-soft: #052e16;
+  --figma-success-text: #22b489;
+  --figma-warning-soft: #451a03;
+  --figma-warning-text: #fbbf24;
+  --figma-dim: #00000099;
+  --ui-success: var(--figma-success-text);
+  --ui-warning: var(--figma-warning-text);
+}
+
+html {
+  font-family: var(--font-sans);
+  font-size: 16px;
+}
+
+body {
+  background: var(--figma-surface-muted);
+  color: var(--figma-text);
+  font-size: var(--text-small);
+  line-height: var(--text-small--line-height);
+}
+
+/*
+ * The tables of the design: a white card with a thin border and radius 16, a header row of 12 px muted labels,
+ * rows of 64 px with a line between them, 24 px at the sides of every cell.
+ */
+@layer components {
+  .table-card {
+    @apply overflow-x-auto rounded-2xl border border-default bg-default;
+  }
+  .table-card table {
+    @apply w-full text-left text-small;
+  }
+  .table-card th {
+    @apply border-b border-default px-6 py-4 text-caption font-normal text-muted;
+  }
+  .table-card td {
+    @apply px-6 py-4 align-middle;
+  }
+  .table-card tbody tr + tr td {
+    @apply border-t border-default;
+  }
+}
 
 /* a11y: no animation for people who asked their system for less motion */
 @media (prefers-reduced-motion: reduce) {

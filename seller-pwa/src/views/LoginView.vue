@@ -29,39 +29,41 @@ async function onSubmit() {
 </script>
 
 <template>
-  <div class="mx-auto flex max-w-md flex-col justify-center pt-8">
-    <UCard>
-      <template #header>
-        <h1 class="text-2xl font-semibold">{{ t('login.title') }}</h1>
-        <p class="mt-2 text-sm text-muted">{{ t('login.intro') }}</p>
-      </template>
-      <form class="flex flex-col gap-4" @submit.prevent="onSubmit">
-        <UFormField :label="t('login.email')" name="email">
-          <UInput
-            v-model="state.email"
-            type="email"
-            autocomplete="email"
-            required
-            class="w-full"
-            data-testid="login-email"
-          />
-        </UFormField>
-        <UFormField :label="t('login.password')" name="password">
-          <UInput
-            v-model="state.password"
-            type="password"
-            autocomplete="current-password"
-            required
-            class="w-full"
-            data-testid="login-password"
-          />
-        </UFormField>
-        <UAlert v-if="devLoginEnabled" color="warning" variant="subtle" :title="t('login.devNote')" data-testid="login-dev-note" />
-        <UAlert v-if="error" color="error" variant="subtle" :title="error" data-testid="login-error" />
-        <UButton type="submit" block :loading="loading" data-testid="login-submit">
-          {{ t('login.submit') }}
-        </UButton>
-      </form>
-    </UCard>
+  <!-- Design 01: a card of 448 px on a computer, the bare form on a phone -->
+  <div
+    class="flex flex-col gap-6 md:mx-auto md:mt-6 md:w-full md:max-w-[448px] md:rounded-2xl md:border md:border-default md:bg-default md:p-8"
+  >
+    <div class="flex flex-col gap-4">
+      <h1 class="text-page font-semibold">{{ t('login.title') }}</h1>
+      <p class="text-small text-muted">{{ t('login.intro') }}</p>
+    </div>
+    <form class="flex flex-col gap-6" @submit.prevent="onSubmit">
+      <UFormField :label="t('login.email')" name="email">
+        <UInput
+          v-model="state.email"
+          type="email"
+          autocomplete="email"
+          required
+          placeholder="naam@robotmaker.be"
+          class="w-full"
+          data-testid="login-email"
+        />
+      </UFormField>
+      <UFormField :label="t('login.password')" name="password">
+        <UInput
+          v-model="state.password"
+          type="password"
+          autocomplete="current-password"
+          required
+          class="w-full"
+          data-testid="login-password"
+        />
+      </UFormField>
+      <UAlert v-if="devLoginEnabled" color="warning" variant="subtle" :title="t('login.devNote')" data-testid="login-dev-note" />
+      <UAlert v-if="error" color="error" variant="subtle" :title="error" data-testid="login-error" />
+      <UButton type="submit" block :loading="loading" data-testid="login-submit">
+        {{ t('login.submit') }}
+      </UButton>
+    </form>
   </div>
 </template>

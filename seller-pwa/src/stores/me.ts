@@ -1,7 +1,8 @@
 import { computed, shallowRef, watch } from 'vue'
 import { defineStore } from 'pinia'
 import type { Me, Permission } from '@/api/types'
-import { api } from '@/lib/api'
+import useGraphql from '@/composables/useGraphql'
+import { ME } from '@/graphql/me.query'
 import { useAuthStore } from './auth'
 
 /**
@@ -9,6 +10,7 @@ import { useAuthStore } from './auth'
  * this only keeps the screens (and the menu) away from what would fail anyway.
  */
 export const useMeStore = defineStore('me', () => {
+  const { apolloClient } = useGraphql()
   const me = shallowRef<Me | null>(null)
   let pending: Promise<void> | null = null
 
@@ -21,10 +23,10 @@ export const useMeStore = defineStore('me', () => {
 
   async function load(force = false): Promise<void> {
     if (me.value && !force) return
-    pending ??= api
-      .get<Me>('/me')
-      .then((data) => {
-        me.value = data
+    pending ??= apolloClient
+      .query({ query: ME })
+      .then(({ data }) => {
+        me.value = data.me
       })
       .finally(() => {
         pending = null
@@ -42,7 +44,7 @@ export const useMeStore = defineStore('me', () => {
   let previousUid: string | null = auth.user?.uid ?? null
   watch(
     () => auth.user?.uid ?? null,
-    (uid) => {
+    uid => {
       if (uid === previousUid) return
       previousUid = uid
       reset()

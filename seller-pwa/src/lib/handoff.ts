@@ -1,40 +1,36 @@
-import { onBeforeUnmount, onMounted, ref } from 'vue'
-import type { List } from '@/api/types'
-import { api } from '@/lib/api'
+import { computed, onBeforeUnmount, onMounted, ref } from 'vue'
+import { useSubscription } from '@vue/apollo-composable'
+import type { WaitingPairing } from '@/api/types'
+import { WAITING_PAIRINGS_CHANGED } from '@/graphql/pairings.query'
+import { usePairingsStore } from '@/stores/pairings'
 
-/** A simulator (the phone or the Windows app) that waits for the key of a robot */
-export interface Pairing {
-  id: string
-  device: string
-  code: string
-  /** It runs on this very computer: then the key goes to it without asking */
-  loopback: boolean
-  createdAt: string
-}
-
+/** When the websocket is down, the list of waiting simulators is asked for every 2 seconds instead */
 const POLL_MS = 2000
 
 /**
  * Sends the key of a new robot straight to the simulator, so nobody copies it by hand.
  * A simulator on this computer gets it at once; one elsewhere (a phone) shows a code and is
  * chosen with a click. The key goes through the seller API in memory and is handed over once.
+ *
+ * The list of waiting simulators is live: the API pushes it over a GraphQL subscription
+ * (`waitingPairingsChanged`), so a simulator that starts while the dialog is open shows up by itself.
  */
 export function useSimulatorHandoff(robotId: string, apiKey: string) {
-  const waiting = ref<Pairing[]>([])
-  const sentTo = ref<Pairing | null>(null)
+  const pairings = usePairingsStore()
+  const sentTo = ref<WaitingPairing | null>(null)
   const sending = ref(false)
   const failed = ref(false)
   let timer: ReturnType<typeof setInterval> | undefined
   let busy = false
 
-  async function send(pairing: Pairing): Promise<void> {
+  async function send(pairing: WaitingPairing): Promise<void> {
     if (sentTo.value || sending.value) return
     sending.value = true
     failed.value = false
     try {
-      await api.post(`/pairings/${encodeURIComponent(pairing.id)}/deliver`, { robotId, apiKey })
+      await pairings.deliver(pairing.id, robotId, apiKey)
       sentTo.value = pairing
-      stop()
+      stopPolling()
     } catch {
       failed.value = true
     } finally {
@@ -42,31 +38,44 @@ export function useSimulatorHandoff(robotId: string, apiKey: string) {
     }
   }
 
+  /** A simulator on this very computer gets the key without asking */
+  async function adopt(list: WaitingPairing[]): Promise<void> {
+    pairings.waiting = list
+    const local = list.find(pairing => pairing.loopback)
+    if (local && !failed.value) await send(local)
+  }
+
   async function poll(): Promise<void> {
     if (busy || sentTo.value) return
     busy = true
     try {
-      const { items } = await api.get<List<Pairing>>('/pairings')
-      waiting.value = items
-      const local = items.find((pairing) => pairing.loopback)
-      if (local && !failed.value) await send(local)
+      await pairings.load()
+      await adopt(pairings.waiting)
     } catch {
-      waiting.value = []
+      pairings.waiting = []
     } finally {
       busy = false
     }
   }
 
-  function stop(): void {
+  function startPolling(): void {
+    if (!timer) timer = setInterval(() => void poll(), POLL_MS)
+  }
+
+  function stopPolling(): void {
     if (timer) clearInterval(timer)
     timer = undefined
   }
 
-  onMounted(() => {
-    void poll()
-    timer = setInterval(() => void poll(), POLL_MS)
+  const { onResult, onError } = useSubscription(WAITING_PAIRINGS_CHANGED)
+  onResult(({ data }) => {
+    if (data && !sentTo.value) void adopt(data.waitingPairingsChanged)
   })
-  onBeforeUnmount(stop)
+  onError(startPolling)
 
+  onMounted(() => void poll())
+  onBeforeUnmount(stopPolling)
+
+  const waiting = computed(() => pairings.waiting)
   return { waiting, sentTo, sending, failed, send }
 }
