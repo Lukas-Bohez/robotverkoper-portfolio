@@ -16,7 +16,7 @@ Elk scherm bestaat voor **desktop (1440 px)** en voor **telefoon (390 px)**. De 
 
 | Nr | Scherm | Wat | Gemaakt in code |
 | --- | --- | --- | --- |
-| 01 | Inloggen | E-mail en wachtwoord, geen Google-login. **Zonder menu, e-mailbadge en "Uitloggen"**: wie nog niet is ingelogd, mag die niet zien | `seller-pwa/src/views/LoginView.vue` |
+| 01 | Inloggen | E-mail en wachtwoord, geen Google-login. **Zonder menu, taalkiezer, e-mailbadge en "Uitloggen"**: wie nog niet is ingelogd, mag die niet zien | `seller-pwa/src/views/LoginView.vue` |
 | 02 | Bedrijven | Lijst met robots en defecten per bedrijf, zonder personeel of klantgegevens. Per bedrijf twee knoppen: **Robots openen** (scherm 04) en **Rollen openen** (scherm 06, van daaruit **Bekijken als rol**, scherm 08) | `CompaniesView.vue` |
 | 03 | Nieuw bedrijf | Naam, adres en e-mail van de eerste beheerder | `NewCompanyView.vue` |
 | 04 | Robots van een bedrijf | Statusbadge en batterij per robot, robot toekennen (één geïsoleerde etenrobot) | `CompanyRobotsView.vue` |
@@ -85,7 +85,7 @@ Elk scherm gebruikt **instances** van deze componenten (meer dan 190 in totaal),
 | **Badge** | `tone` success, danger, warning, primary, neutral | ![Badge](component-badge.png) |
 | **Field** | `state` default, error; `hint` yes, no | ![Field](component-field.png) |
 | **Alert** | `tone` primary, success, warning, danger | ![Alert](component-alert.png) |
-| **Header** | `device` desktop of mobile, `active` het menu-item | zie hierboven |
+| **Header** | `device` desktop of mobile, `active` het menu-item. Met een **taalkiezer EN, NL, FR, DE** (NL is de taal van het ontwerp): de app ondersteunt al die talen. Op de telefoon staat er een knop "NL" naast "Menu". Zonder ingelogd te zijn zie je geen van beide | zie hierboven |
 | **RoleRow** | `locked` yes, no | ![RoleRow](component-rolerow.png) |
 | **CompanyCard** | `defect` none, some. Met twee knoppen: Robots openen en Rollen openen | ![CompanyCard](component-companycard.png) |
 
