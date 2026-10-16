@@ -76,6 +76,8 @@ export const en: Messages = {
     created: 'Created',
     open: 'Open robots',
     openRobots: 'Robots of {name}',
+    openRoles: 'Open roles',
+    openRolesOf: 'Roles of {name}',
   },
   newCompany: {
     title: 'New company',

@@ -77,17 +77,30 @@ onMounted(load)
                 </UBadge>
               </td>
               <td class="px-4 py-3">{{ shortDate(company.createdAt, locale) }}</td>
-              <td class="px-4 py-3 text-right">
-                <UButton
-                  :to="{ name: 'company-robots', params: { id: company.id } }"
-                  color="neutral"
-                  variant="outline"
-                  size="sm"
-                  :aria-label="t('companies.openRobots', { name: company.name })"
-                  data-testid="company-robots-link"
-                >
-                  {{ t('companies.open') }}
-                </UButton>
+              <td class="px-4 py-3">
+                <div class="flex justify-end gap-2">
+                  <UButton
+                    :to="{ name: 'company-robots', params: { id: company.id } }"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    :aria-label="t('companies.openRobots', { name: company.name })"
+                    data-testid="company-robots-link"
+                  >
+                    {{ t('companies.open') }}
+                  </UButton>
+                  <UButton
+                    v-if="me.can('company-roles:manage')"
+                    :to="{ name: 'company-roles', params: { id: company.id } }"
+                    color="neutral"
+                    variant="outline"
+                    size="sm"
+                    :aria-label="t('companies.openRolesOf', { name: company.name })"
+                    data-testid="company-roles-link"
+                  >
+                    {{ t('companies.openRoles') }}
+                  </UButton>
+                </div>
               </td>
             </tr>
           </tbody>
@@ -112,15 +125,30 @@ onMounted(load)
           >
             {{ company.openDefects > 0 ? t('companies.defectCount', company.openDefects) : t('companies.noDefects') }}
           </UBadge>
-          <UButton
-            :to="{ name: 'company-robots', params: { id: company.id } }"
-            color="neutral"
-            variant="outline"
-            block
-            :aria-label="t('companies.openRobots', { name: company.name })"
-          >
-            {{ t('companies.open') }}
-          </UButton>
+          <div class="flex gap-2">
+            <UButton
+              :to="{ name: 'company-robots', params: { id: company.id } }"
+              class="flex-1"
+              color="neutral"
+              variant="outline"
+              block
+              :aria-label="t('companies.openRobots', { name: company.name })"
+            >
+              {{ t('companies.open') }}
+            </UButton>
+            <UButton
+              v-if="me.can('company-roles:manage')"
+              :to="{ name: 'company-roles', params: { id: company.id } }"
+              class="flex-1"
+              color="neutral"
+              variant="outline"
+              block
+              :aria-label="t('companies.openRolesOf', { name: company.name })"
+              data-testid="company-card-roles-link"
+            >
+              {{ t('companies.openRoles') }}
+            </UButton>
+          </div>
         </li>
       </ul>
     </template>

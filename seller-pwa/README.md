@@ -7,7 +7,7 @@ Eigenaar: **Lukas** (zie [`../README.md`](../README.md)). De app staat buiten de
 ## Wat het doet
 
 - **Inloggen** met e-mail en wachtwoord (Firebase). Geen Google-login: dat vertrouwt de klant niet. Zonder Firebase-waarden: lokale demo-logins in de dev-server.
-- **Bedrijven:** lijst met aantal robots en defecten, nieuw bedrijf maken. Geen personeel, klanten of e-mailadressen in beeld.
+- **Bedrijven:** lijst met aantal robots en defecten, nieuw bedrijf maken, en per bedrijf twee knoppen: **Robots openen** en **Rollen openen** (zo is het rollenscherm bereikbaar, zoals in het Figma-ontwerp). Geen personeel, klanten of e-mailadressen in beeld.
 - **Robots per bedrijf:** lijst met een duidelijke statusbadge (online, offline, defect) en batterij, en een robot aanmaken en toekennen. Eén soort etenrobot: geïsoleerd, dus geen warm, koud of neutraal. De **API-sleutel wordt één keer getoond** en gaat vanzelf naar de robot-app die wacht; kopiëren kan ook.
 - **Defecten:** een defect melden, een robot **vervangen** (nieuwe sleutel, oude stopt) of het defect sluiten.
 - **Accounts en rollen** van een bedrijf: rollen maken uit blokken permissies. **Bekijken als rol**: zien wat een rol ziet, zonder iets te kunnen wijzigen.
@@ -46,7 +46,7 @@ npm run dev
 ## Controleren
 
 ```bash
-npm run test:unit        # Vitest, 105 tests
+npm run test:unit        # Vitest, 111 tests
 npm run type-check       # vue-tsc
 npm run build            # productiebuild + typecheck
 ```

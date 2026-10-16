@@ -53,6 +53,25 @@ describe('CompaniesView', () => {
     expect(wrapper.find('[data-testid="company-robots-link"]').attributes('href')).toBe('/companies/t1')
   })
 
+  it('links every company to its roles, in the table and on the phone card', async () => {
+    const wrapper = await mountView()
+    await flushPromises()
+    expect(wrapper.find('[data-testid="company-roles-link"]').attributes('href')).toBe('/companies/t1/roles')
+    expect(wrapper.find('[data-testid="company-roles-link"]').text()).toBe('Rollen openen')
+    expect(wrapper.findAll('[data-testid="company-card-roles-link"]').map((link) => link.attributes('href'))).toEqual([
+      '/companies/t1/roles',
+      '/companies/t2/roles',
+    ])
+  })
+
+  it('does not offer the roles to a role that may not manage them', async () => {
+    const wrapper = await mountView(piniaWith('technician', TECHNICIAN_PERMISSIONS))
+    await flushPromises()
+    expect(wrapper.find('[data-testid="company-robots-link"]').exists()).toBe(true)
+    expect(wrapper.find('[data-testid="company-roles-link"]').exists()).toBe(false)
+    expect(wrapper.find('[data-testid="company-card-roles-link"]').exists()).toBe(false)
+  })
+
   it('offers "new company" only to a role that may create companies', async () => {
     let wrapper = await mountView()
     await flushPromises()

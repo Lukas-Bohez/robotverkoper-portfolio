@@ -74,6 +74,8 @@ export const nl = {
     created: 'Aangemaakt',
     open: 'Robots openen',
     openRobots: 'Robots van {name}',
+    openRoles: 'Rollen openen',
+    openRolesOf: 'Rollen van {name}',
   },
   newCompany: {
     title: 'Nieuw bedrijf',
