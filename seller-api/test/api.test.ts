@@ -39,6 +39,24 @@ describe('who may do what', () => {
     assert.ok(me.permissions.includes('accounts:manage'))
   })
 
+  test('every superadmin in the settings may do everything, without needing an account first', async () => {
+    await app.close()
+    app = await startApp([ADMIN, 'lukasbohez@gmail.com'])
+    const owner = 'lukasbohez@gmail.com'
+    const me = (await app.call('GET', '/me', { as: owner })).json
+    assert.equal(me.role, 'admin')
+    assert.equal(me.permissions.length, 9)
+    assert.equal((await app.call('GET', '/companies', { as: owner })).status, 200)
+    assert.equal((await app.call('GET', '/defects', { as: owner })).status, 200)
+    assert.equal((await app.call('GET', '/companies/c-demo/roles', { as: owner })).status, 200)
+    assert.equal((await app.call('GET', '/accounts', { as: owner })).status, 200)
+    assert.equal((await app.call('GET', '/audit', { as: owner })).status, 200)
+    const created = await app.call('POST', '/companies', { as: owner, body: { name: 'Nieuwe Zaak', subdomain: 'nieuwe-zaak', adminEmail: 'baas@nieuwe-zaak.be' } })
+    assert.equal(created.status, 201)
+    // The address is matched in any letter case
+    assert.equal((await app.call('GET', '/me', { as: 'LukasBohez@Gmail.com' })).json.role, 'admin')
+  })
+
   test('a technician sees robots and defects but cannot create companies, set up roles or manage staff', async () => {
     await app.call('POST', '/accounts', { body: { email: TECH, role: 'technician' } })
     assert.equal((await app.call('GET', '/companies', { as: TECH })).status, 200)

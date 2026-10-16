@@ -68,7 +68,7 @@ Zet dan `SELLER_ADMIN_EMAILS` op het e-mailadres van de eerste beheerder. De Win
 | Verkopers-API | <http://localhost:4200> (`/health`) |
 | Platform-simulator | <http://localhost:4100> (`/health`) |
 
-**Inloggen.** Staan de Firebase-waarden in `seller-pwa/.env`, dan log je in met je echte account. Zonder die waarden start de demo met **lokale logins** (geen internet nodig): log in met `docent@howest.be` en een willekeurig wachtwoord. Die logins bestaan alleen in de dev-server en de API weigert ze in productie.
+**Inloggen.** Staan de Firebase-waarden in `seller-pwa/.env`, dan log je in met je echte account. Zonder die waarden start de demo met **lokale logins** (geen internet nodig): log in met `docent@howest.be` of `lukasbohez@gmail.com` en een willekeurig wachtwoord: beide zijn **superadmin** van het verkopersdeel en mogen alles. Die logins bestaan alleen in de dev-server en de API weigert ze in productie.
 
 **Een robot aan de simulator geven, zonder iets te kopiëren:**
 
@@ -102,6 +102,6 @@ npm test             # platform-simulator + seller-api + seller-pwa
 npm run type-check
 ```
 
-Per onderdeel: `platform-simulator` 20 tests, `seller-api` 56 tests, `seller-pwa` 111 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
+Per onderdeel: `platform-simulator` 20 tests, `seller-api` 57 tests, `seller-pwa` 111 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
 
 Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](../docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.

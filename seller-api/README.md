@@ -20,7 +20,7 @@ Gemakkelijker: `npm run dev` in `Lukas/` start deze API samen met de simulator e
 | Instelling | Standaard | Wat |
 | --- | --- | --- |
 | `AUTH_MODE` | `firebase` | `firebase` controleert echte Firebase-logins (vraagt `FIREBASE_PROJECT_ID`, geen service account). `dev` accepteert tokens `dev:<e-mail>` voor een lokale demo en **weigert te starten in productie** |
-| `SELLER_ADMIN_EMAILS` | | wie beheerder is vanaf het begin, komma's ertussen |
+| `SELLER_ADMIN_EMAILS` | | wie beheerder (superadmin) is vanaf het begin, komma's ertussen. In de demo (`npm run dev` in `Lukas/`, Docker) zijn dat `docent@howest.be` en `lukasbohez@gmail.com` |
 | `PLATFORM_URL`, `PLATFORM_TOKEN` | `http://127.0.0.1:4100`, `dev-platform-token` | het platform (de simulator) |
 | `ROBOT_API_URL` | `PLATFORM_URL` + `/graphql` | waar een robot verbindt, gaat mee met de sleutel naar de simulator |
 | `DB_PATH` | `data/seller.db` | het databasebestand |
@@ -62,7 +62,7 @@ Fouten komen als `{ code, message }`. De website vertaalt de `code`.
 ## Controleren
 
 ```bash
-npm test             # 56 tests (node --test)
+npm test             # 57 tests (node --test)
 npm run type-check
 ```
 

@@ -11,6 +11,8 @@ import { fileURLToPath } from 'node:url'
 
 const lukas = join(dirname(fileURLToPath(import.meta.url)), '..')
 const PORTS = { simulator: 4100, api: 4200, pwa: 5174 }
+/** Who is superadmin of the seller panel in the demo: the teacher's account and Lukas. A real deployment sets SELLER_ADMIN_EMAILS. */
+const DEMO_ADMINS = 'docent@howest.be,lukasbohez@gmail.com'
 
 /** The VITE_* values of seller-pwa/.env (only to find out whether Firebase is set up) */
 function readDotEnv(path) {
@@ -74,7 +76,7 @@ const parts = [
       PLATFORM_URL: `http://127.0.0.1:${PORTS.simulator}`,
       PLATFORM_TOKEN: platformToken,
       SEED_DEMO: process.env.SEED_DEMO ?? 'true',
-      SELLER_ADMIN_EMAILS: process.env.SELLER_ADMIN_EMAILS || apiEnv.SELLER_ADMIN_EMAILS || 'docent@howest.be',
+      SELLER_ADMIN_EMAILS: process.env.SELLER_ADMIN_EMAILS || apiEnv.SELLER_ADMIN_EMAILS || DEMO_ADMINS,
     },
   },
   {

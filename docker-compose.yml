@@ -3,7 +3,8 @@
 #   cd Lukas
 #   docker compose up --build
 #
-# Open http://localhost:5174 and log in with docent@howest.be and any password (local demo logins, no Firebase needed).
+# Open http://localhost:5174 and log in with docent@howest.be or lukasbohez@gmail.com and any password (local demo logins,
+# no Firebase needed). Both are superadmin of the seller panel.
 # For the real thing (Firebase logins, the built PWA behind nginx) add docker-compose.firebase.yml, see Lukas/README.md.
 name: robotverkoper
 
@@ -25,7 +26,7 @@ services:
       # The demo logins accept anyone: the API refuses them when NODE_ENV=production
       AUTH_MODE: dev
       SEED_DEMO: "true"
-      SELLER_ADMIN_EMAILS: ${SELLER_ADMIN_EMAILS:-docent@howest.be}
+      SELLER_ADMIN_EMAILS: ${SELLER_ADMIN_EMAILS:-docent@howest.be,lukasbohez@gmail.com}
       # Container to container
       PLATFORM_URL: http://platform-simulator:4100
       # What the robot app (on the host or on a phone) connects to: the address of the host, not of a container

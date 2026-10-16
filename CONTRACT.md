@@ -79,4 +79,4 @@ Eén SQLite-bestand (`seller-api/data/seller.db`, niet in git). Tabellen: `robot
 | `admin` (Beheerder) | alles: bedrijven maken, rollen van een bedrijf, robots, defecten, team, logboek |
 | `technician` (Technicus) | bedrijven en robots bekijken, robots toekennen, defecten melden en afhandelen. Geen bedrijven maken, geen rollen, geen team, geen logboek |
 
-Beheerders uit `SELLER_ADMIN_EMAILS` zijn altijd beheerder. Verdere accounts voegt een beheerder toe in het scherm Team.
+Beheerders uit `SELLER_ADMIN_EMAILS` zijn altijd beheerder (superadmin: alle permissies). In de demo zijn dat `docent@howest.be` en `lukasbohez@gmail.com`. Verdere accounts voegt een beheerder toe in het scherm Team.

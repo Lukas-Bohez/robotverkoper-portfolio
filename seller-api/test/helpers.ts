@@ -120,12 +120,13 @@ export interface TestApp {
 
 export const ADMIN = 'docent@howest.be'
 
-export async function startApp(): Promise<TestApp> {
+/** `admins`: the addresses of SELLER_ADMIN_EMAILS (the demo has two: the teacher and Lukas) */
+export async function startApp(admins: string[] = [ADMIN]): Promise<TestApp> {
   const store = new SellerStore(openDatabase(':memory:'))
   seedModels(store)
   const platform = new FakePlatform()
   const service = new SellerService(store, platform, {
-    sellerAdminEmails: [ADMIN],
+    sellerAdminEmails: admins,
     robotApiUrl: 'http://platform.test/graphql',
   })
   const server: Server = createSellerApi({
