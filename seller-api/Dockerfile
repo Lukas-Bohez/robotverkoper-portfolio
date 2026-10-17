@@ -1,7 +1,7 @@
 # The seller API: NestJS + GraphQL + MongoDB. Two stages: build with everything, run with only what runs.
 FROM node:24-alpine AS build
 WORKDIR /app
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --no-audit --no-fund
 COPY tsconfig.json tsconfig.build.json nest-cli.json ./
 COPY src ./src
@@ -11,7 +11,7 @@ FROM node:24-alpine
 WORKDIR /app
 ENV BIND_HOST=0.0.0.0 \
     PORT=4200
-COPY package.json package-lock.json ./
+COPY package.json package-lock.json .npmrc ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY --from=build /app/dist ./dist
 

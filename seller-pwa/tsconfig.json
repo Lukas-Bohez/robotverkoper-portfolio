@@ -6,6 +6,7 @@
     "types": ["vite/client", "vite-plugin-pwa/client", "node"],
     "paths": {
       "@/*": ["./src/*"],
+      "@robotverkoper/seller-types": ["../seller-types/dist/graphql.d.ts"],
       "#build/ui/*": ["./node_modules/.nuxt-ui/ui/*"]
     },
     "noEmit": true

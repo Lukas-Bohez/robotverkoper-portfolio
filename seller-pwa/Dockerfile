@@ -33,7 +33,8 @@ ENV VITE_API_URL=$VITE_API_URL \
     VITE_FIREBASE_messagingSenderId=$VITE_FIREBASE_messagingSenderId \
     VITE_FIREBASE_appId=$VITE_FIREBASE_appId
 COPY . .
-RUN npm run build
+# The types of the API (../seller-types) are checked in CI (type-check); the image only needs the bundle
+RUN npx vite build
 
 # ── prod ──────────────────────────────────────────────────────────────────────────────────
 FROM nginx:1.27-alpine AS prod
