@@ -9,8 +9,10 @@ RUN npm run build
 
 FROM node:24-alpine
 WORKDIR /app
+# The schema stays in memory: the container runs as `node` and may not write in dist/
 ENV BIND_HOST=0.0.0.0 \
-    PORT=4200
+    PORT=4200 \
+    GRAPHQL_SCHEMA_FILE=memory
 COPY package.json package-lock.json .npmrc ./
 RUN npm ci --omit=dev --no-audit --no-fund
 COPY --from=build /app/dist ./dist
