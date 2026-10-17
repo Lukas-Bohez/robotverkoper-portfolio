@@ -28,7 +28,7 @@ Van de vraag van de klant tot het dossier. Elke stap verwijst naar de volgende.
 | Map | Wat | Techniek |
 | --- | --- | --- |
 | [`seller-pwa/`](seller-pwa/) | De PWA voor de **verkopers van de robots**: bedrijven aanmaken, robots toekennen, defecten en vervangen, rollen van een bedrijf, bekijken als rol, team en logboek | Vue 3, Nuxt UI, Pinia |
-| [`seller-api/`](seller-api/) | De **eigen API en database** van de verkopers: robotmodellen, robots (alleen het begin van de sleutel), defecten, eigen medewerkers, logboek | Node 24, TypeScript, **SQLite** (eigen bestand) |
+| [`seller-api/`](seller-api/) | De **eigen API en database** van de verkopers: robotmodellen, robots (alleen het begin van de sleutel), defecten, eigen medewerkers, logboek | NestJS, **GraphQL** (code first), **MongoDB** (eigen database), TypeORM, DataLoader, subscriptions |
 | [`platform-simulator/`](platform-simulator/) | Speelt het **platform van de bedrijven** na met verzonnen bedrijven, rollen en robots, en spreekt het robotcontract | Node 24, TypeScript, zonder pakketten |
 | [`simulator/`](simulator/) | De robotsimulator: de gsm (of pc) is de robot. De sleutel van een nieuwe robot komt vanzelf uit de PWA | Flutter |
 | [`demo-launcher/`](demo-launcher/) | `Delivery Robot Demo.exe`: start alles hierboven met één klik | C# |
@@ -43,14 +43,17 @@ Met één klik (Windows): bouw de exe eenmalig met `powershell -ExecutionPolicy 
 
 ```bash
 cd Lukas
-npm run dev          # installeert de pakketten als dat nodig is en start alles
+npm run dev          # installeert de pakketten als dat nodig is en start alles: MongoDB, platform-simulator, API en PWA
+
+# Een echt platform in plaats van de simulator (dat het contract van CONTRACT.md spreekt):
+#   PLATFORM_URL=http://... PLATFORM_TOKEN=... npm run dev
 ```
 
-**In Docker** (de leerkrachten willen dat de applicatie in containers draait): alleen het deel van Lukas, zonder MongoDB en zonder de API van Maciej.
+**In Docker** (de leerkrachten willen dat de applicatie in containers draait): alleen het deel van Lukas, met een eigen MongoDB-container en zonder de API van Maciej.
 
 ```bash
 cd Lukas
-docker compose up --build        # platform-simulator, verkopers-API (SQLite in een volume) en de PWA
+docker compose up --build        # eigen MongoDB, platform-simulator, verkopers-API en de PWA
 docker compose down -v           # alles weer opruimen, ook de gegevens
 ```
 
@@ -82,8 +85,8 @@ Een gsm elders op het netwerk krijgt de sleutel niet vanzelf: de verkoper kiest 
 
 | | Lukas (deze map) | Maciej |
 | --- | --- | --- |
-| Database | Eigen SQLite-bestand `seller-api/data/seller.db` | MongoDB (Docker) |
-| API | `seller-api` (REST, poort 4200) | NestJS GraphQL (`packages/api`, poort 3000) |
+| Database | Eigen MongoDB (poort 27028, zonder Docker via `npm run dev`; of een eigen container) | MongoDB van het platform (Docker) |
+| API | `seller-api` (NestJS GraphQL, poort 4200) | NestJS GraphQL (`packages/api`, poort 3000) |
 | PWA | `seller-pwa` (poort 5174) | `packages/platform` (poort 5173) |
 | Bedrijven, rollen, robots | Komen uit de **platform-simulator**: verzonnen gegevens | Echte gegevens in zijn database |
 | Start | `npm run dev` in `Lukas/`, of de launcher | `npm run dev` in de root |
@@ -102,6 +105,6 @@ npm test             # platform-simulator + seller-api + seller-pwa
 npm run type-check
 ```
 
-Per onderdeel: `platform-simulator` 20 tests, `seller-api` 57 tests, `seller-pwa` 111 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
+Per onderdeel: `platform-simulator` 31 tests, `seller-api` 112 unit- en 137 e2e-tests (`npm test` en `npm run test:e2e`, met een MongoDB in het geheugen), `seller-pwa` 50 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
 
 Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](../docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.

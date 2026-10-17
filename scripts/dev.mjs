@@ -1,8 +1,10 @@
 // Starts the whole of Lukas's part and nothing of anyone else's:
+//   mongodb            (27028) our own database (MongoDB, no Docker needed; the data lives in your home folder)
 //   platform-simulator (4100)  plays the platform of the companies, with made-up data
-//   seller-api         (4200)  our own API and database (SQLite)
+//   seller-api         (4200)  our own API (NestJS + GraphQL + MongoDB)
 //   seller-pwa         (5174)  the website for the sellers of the robots
-// Stops everything when one of them stops or when you press Ctrl+C.
+// With PLATFORM_URL set (a platform that speaks Lukas/CONTRACT.md, plus PLATFORM_TOKEN) the simulator is not started and the
+// seller API reads the companies of that platform instead. Stops everything when one of them stops or on Ctrl+C.
 import { spawn, spawnSync } from 'node:child_process'
 import { existsSync, readFileSync } from 'node:fs'
 import { connect } from 'node:net'
@@ -10,7 +12,9 @@ import { dirname, join } from 'node:path'
 import { fileURLToPath } from 'node:url'
 
 const lukas = join(dirname(fileURLToPath(import.meta.url)), '..')
-const PORTS = { simulator: 4100, api: 4200, pwa: 5174 }
+const PORTS = { mongo: 27028, simulator: 4100, api: 4200, pwa: 5174 }
+/** A real platform can be plugged in; without it the platform simulator plays the platform */
+const EXTERNAL_PLATFORM = process.env.PLATFORM_URL?.trim() || ''
 /** Who is superadmin of the seller panel in the demo: the teacher's account and Lukas. A real deployment sets SELLER_ADMIN_EMAILS. */
 const DEMO_ADMINS = 'docent@howest.be,lukasbohez@gmail.com'
 
@@ -51,6 +55,7 @@ function portInUse(port) {
 }
 
 for (const [name, port] of Object.entries(PORTS)) {
+  if (name === 'simulator' && EXTERNAL_PLATFORM) continue
   if (await portInUse(port)) {
     console.error(`Poort ${port} (${name}) is al in gebruik. Stop dat programma en start opnieuw.`)
     process.exit(1)
@@ -60,11 +65,22 @@ for (const [name, port] of Object.entries(PORTS)) {
 const platformToken = process.env.PLATFORM_TOKEN || 'dev-platform-token'
 const parts = [
   {
-    name: 'platform-simulator',
-    cwd: 'platform-simulator',
-    args: ['start'],
-    env: { PORT: String(PORTS.simulator), PLATFORM_TOKEN: platformToken },
+    name: 'mongodb',
+    cwd: 'seller-api',
+    args: ['run', 'db:memory'],
+    env: { MONGO_PORT: String(PORTS.mongo) },
+    waitForPort: PORTS.mongo,
   },
+  ...(EXTERNAL_PLATFORM
+    ? []
+    : [
+        {
+          name: 'platform-simulator',
+          cwd: 'platform-simulator',
+          args: ['start'],
+          env: { PORT: String(PORTS.simulator), PLATFORM_TOKEN: platformToken },
+        },
+      ]),
   {
     name: 'seller-api',
     cwd: 'seller-api',
@@ -73,7 +89,8 @@ const parts = [
       PORT: String(PORTS.api),
       AUTH_MODE: authMode,
       FIREBASE_PROJECT_ID: projectId,
-      PLATFORM_URL: `http://127.0.0.1:${PORTS.simulator}`,
+      MONGODB_URI: process.env.MONGODB_URI || `mongodb://127.0.0.1:${PORTS.mongo}/seller`,
+      PLATFORM_URL: EXTERNAL_PLATFORM || `http://127.0.0.1:${PORTS.simulator}`,
       PLATFORM_TOKEN: platformToken,
       SEED_DEMO: process.env.SEED_DEMO ?? 'true',
       SELLER_ADMIN_EMAILS: process.env.SELLER_ADMIN_EMAILS || apiEnv.SELLER_ADMIN_EMAILS || DEMO_ADMINS,
@@ -116,6 +133,7 @@ function pipeLines(stream, prefix, target) {
 console.log(`Lukas: ${authMode === 'dev' ? 'lokale demo-logins (geen Firebase nodig)' : `Firebase-project ${projectId}`}`)
 
 for (const part of parts) {
+  if (stopping) break
   const child = spawn('npm', part.args, {
     cwd: join(lukas, part.cwd),
     env: { ...process.env, ...part.env },
@@ -131,6 +149,17 @@ for (const part of parts) {
     stopAll(code || 1)
   })
   children.push(child)
+  // The database must answer before the API starts (the first run may download MongoDB once)
+  if (part.waitForPort) {
+    const until = Date.now() + 180_000
+    while (!stopping && !(await portInUse(part.waitForPort)) && Date.now() < until) {
+      await new Promise((resolve) => setTimeout(resolve, 1000))
+    }
+    if (!stopping && !(await portInUse(part.waitForPort))) {
+      console.error(`${prefix} antwoordt niet binnen 3 minuten (internet nodig voor de eerste keer?).`)
+      stopAll(1)
+    }
+  }
 }
 
 process.on('SIGINT', () => stopAll(0))
@@ -146,7 +175,7 @@ async function reachable(url) {
 }
 
 const checks = [
-  ['platform-simulator', `http://127.0.0.1:${PORTS.simulator}/health`],
+  ...(EXTERNAL_PLATFORM ? [] : [['platform-simulator', `http://127.0.0.1:${PORTS.simulator}/health`]]),
   ['seller-api', `http://127.0.0.1:${PORTS.api}/health`],
   ['seller-pwa', `http://localhost:${PORTS.pwa}/`],
 ]

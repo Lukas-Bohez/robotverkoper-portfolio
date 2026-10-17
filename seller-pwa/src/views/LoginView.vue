@@ -19,7 +19,7 @@ async function onSubmit() {
   loading.value = true
   try {
     await auth.login(state.email.trim(), state.password)
-    await router.push(safeRedirect(route.query.redirect) ?? { name: 'companies' })
+    await router.push(safeRedirect(route.query.redirect) ?? { name: 'home' })
   } catch (e) {
     error.value = t(loginErrorKey(e))
   } finally {

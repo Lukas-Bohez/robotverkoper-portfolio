@@ -1,6 +1,7 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
+import AppDialog from '@/components/AppDialog.vue'
 import { useSimulatorHandoff } from '@/lib/handoff'
 
 /**
@@ -25,57 +26,41 @@ async function copy(key: string) {
 </script>
 
 <template>
-  <div
-    class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 p-4"
-    role="alertdialog"
-    aria-modal="true"
-    aria-labelledby="api-key-title"
-    aria-describedby="api-key-warning"
-    data-testid="api-key-dialog"
-  >
-    <UCard class="w-full max-w-xl">
-      <template #header>
-        <h2 id="api-key-title" class="text-xl font-semibold">{{ t('apiKey.title', { name: robotName }) }}</h2>
+  <AppDialog :title="t('apiKey.title', { name: robotName })" :description="t('apiKey.warning')" testid="api-key-dialog" wide @close="emit('close')">
+    <UAlert
+      v-if="sentTo"
+      color="success"
+      variant="subtle"
+      :title="t('apiKey.simulator.sent', { device: sentTo.device })"
+      data-testid="handoff-sent"
+    />
+    <div v-else class="flex flex-col gap-2" data-testid="handoff">
+      <p v-if="waiting.length === 0" class="text-small text-muted" data-testid="handoff-none">
+        {{ t('apiKey.simulator.none') }}
+      </p>
+      <template v-else>
+        <p class="text-small">{{ t('apiKey.simulator.choose') }}</p>
+        <UButton
+          v-for="pairing in waiting"
+          :key="pairing.id"
+          color="primary"
+          variant="soft"
+          :loading="sending"
+          data-testid="handoff-send"
+          @click="send(pairing)"
+        >
+          {{ t('apiKey.simulator.send', { device: pairing.device, code: pairing.code }) }}
+        </UButton>
       </template>
-      <div class="flex flex-col gap-6">
-        <UAlert id="api-key-warning" color="warning" variant="subtle" :title="t('apiKey.warning')" />
+      <UAlert v-if="failed" color="error" variant="subtle" :title="t('apiKey.simulator.error')" data-testid="handoff-error" />
+    </div>
 
-        <UAlert
-          v-if="sentTo"
-          color="success"
-          variant="subtle"
-          :title="t('apiKey.simulator.sent', { device: sentTo.device })"
-          data-testid="handoff-sent"
-        />
-        <div v-else class="flex flex-col gap-2" data-testid="handoff">
-          <p v-if="waiting.length === 0" class="text-sm text-muted" data-testid="handoff-none">
-            {{ t('apiKey.simulator.none') }}
-          </p>
-          <template v-else>
-            <p class="text-sm">{{ t('apiKey.simulator.choose') }}</p>
-            <UButton
-              v-for="pairing in waiting"
-              :key="pairing.id"
-              color="primary"
-              variant="soft"
-              :loading="sending"
-              data-testid="handoff-send"
-              @click="send(pairing)"
-            >
-              {{ t('apiKey.simulator.send', { device: pairing.device, code: pairing.code }) }}
-            </UButton>
-          </template>
-          <UAlert v-if="failed" color="error" variant="subtle" :title="t('apiKey.simulator.error')" data-testid="handoff-error" />
-        </div>
-
-        <code class="block break-all rounded-lg bg-elevated p-4 text-sm select-all" data-testid="api-key-value">{{ apiKey }}</code>
-        <div class="flex flex-wrap gap-4">
-          <UButton color="neutral" variant="outline" data-testid="api-key-copy" @click="copy(apiKey)">
-            {{ copied ? t('apiKey.copied') : t('apiKey.copy') }}
-          </UButton>
-          <UButton data-testid="api-key-done" @click="emit('close')">{{ t('apiKey.done') }}</UButton>
-        </div>
-      </div>
-    </UCard>
-  </div>
+    <code class="block break-all rounded-lg bg-elevated p-4 text-small select-all" data-testid="api-key-value">{{ apiKey }}</code>
+    <div class="flex flex-wrap gap-4">
+      <UButton color="neutral" variant="outline" data-testid="api-key-copy" @click="copy(apiKey)">
+        {{ copied ? t('apiKey.copied') : t('apiKey.copy') }}
+      </UButton>
+      <UButton data-autofocus data-testid="api-key-done" @click="emit('close')">{{ t('apiKey.done') }}</UButton>
+    </div>
+  </AppDialog>
 </template>

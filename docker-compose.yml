@@ -1,4 +1,4 @@
-# The whole of Lukas's part in Docker, and nothing of Maciej's: no MongoDB, no NestJS API, no other PWA.
+# The whole of Lukas's part in Docker, and nothing of Maciej's: its own MongoDB, its own API, its own PWA.
 #
 #   cd Lukas
 #   docker compose up --build
@@ -9,6 +9,19 @@
 name: robotverkoper
 
 services:
+  # Our own database (MongoDB). Not the database of Maciej: another container, another volume.
+  mongo:
+    image: mongo:8
+    command: ["mongod", "--quiet"]
+    volumes:
+      - seller-mongo:/data/db
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.runCommand({ ping: 1 }).ok"]
+      interval: 5s
+      timeout: 5s
+      retries: 20
+    restart: unless-stopped
+
   platform-simulator:
     build: ./platform-simulator
     ports:
@@ -20,9 +33,12 @@ services:
   seller-api:
     build: ./seller-api
     depends_on:
+      mongo:
+        condition: service_healthy
       platform-simulator:
         condition: service_healthy
     environment:
+      MONGODB_URI: mongodb://mongo:27017/seller
       # The demo logins accept anyone: the API refuses them when NODE_ENV=production
       AUTH_MODE: dev
       SEED_DEMO: "true"
@@ -34,8 +50,6 @@ services:
       CORS_ORIGINS: ${CORS_ORIGINS:-http://localhost:5174,http://127.0.0.1:5174}
     ports:
       - "4200:4200"
-    volumes:
-      - seller-data:/data
     restart: unless-stopped
 
   seller-pwa:
@@ -50,4 +64,4 @@ services:
 
 volumes:
   platform-data:
-  seller-data:
+  seller-mongo:

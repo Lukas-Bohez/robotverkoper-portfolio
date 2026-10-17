@@ -21,14 +21,15 @@ export function safeRedirect(value: unknown): string | null {
 
 /**
  * The route guard: log in first, then the role, then the permission of the page. Without a role you
- * land on the "no access" page, also when the API cannot tell who you are.
+ * land on the "no access" page, also when the API cannot tell who you are. Someone who is already logged in and opens
+ * the login page goes to their own start page (a technician to the dashboard).
  */
 export async function guard(to: RouteLocationNormalized): Promise<true | RouteLocationRaw> {
   const auth = useAuthStore()
   await auth.waitForAuthReady()
 
   if (to.meta.guest) {
-    return auth.user ? { name: 'companies' } : true
+    return auth.user ? { name: 'home' } : true
   }
 
   if (!auth.user) {

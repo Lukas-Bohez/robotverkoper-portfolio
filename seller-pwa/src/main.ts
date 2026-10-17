@@ -8,6 +8,7 @@ import App from './App.vue'
 import router from './router'
 import { i18n } from './i18n'
 import useGraphql from './composables/useGraphql'
+import { useLanguage } from './composables/useLanguage'
 import { registerSW } from 'virtual:pwa-register'
 
 const app = createApp(App)
@@ -20,6 +21,9 @@ app.use(createPinia()) // before the router: its guard uses the stores
 app.use(i18n) // always before the router
 app.use(router)
 app.use(ui)
+
+// English (the fallback) and the language of the person are loaded first: no screen shows a bare translation key
+await useLanguage().init()
 
 app.mount('#app')
 

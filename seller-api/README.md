@@ -1,8 +1,8 @@
 # seller-api: de eigen API en database van de verkopers
 
-De API achter de [`seller-pwa`](../seller-pwa/). Ze heeft een **eigen SQLite-database** en praat met het platform van de bedrijven via één kleine poort (zie [`../CONTRACT.md`](../CONTRACT.md)). In de demo is dat platform de [`platform-simulator`](../platform-simulator/).
+De API achter de [`seller-pwa`](../seller-pwa/). Ze is gebouwd met **NestJS, GraphQL (code first) en MongoDB** en heeft een **eigen database** en praat met het platform van de bedrijven via één kleine poort (zie [`../CONTRACT.md`](../CONTRACT.md)). In de demo is dat platform de [`platform-simulator`](../platform-simulator/).
 
-- Node 24, TypeScript zonder build (Node voert `.ts` rechtstreeks uit), `node:sqlite` en `node:test`.
+- NestJS 12, `@nestjs/graphql` + Apollo, TypeORM (MongoDB), DataLoader, subscriptions (graphql-ws), class-validator, migraties, vitest en supertest. `npm run db:memory` start een MongoDB zonder Docker; `npm test` (unit) en `npm run test:e2e`.
 - Eén pakket: `jose` (om Firebase-logins te controleren). Geen framework.
 - Staat buiten de npm-workspaces van de rest van het project.
 

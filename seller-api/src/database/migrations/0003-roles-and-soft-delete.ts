@@ -55,7 +55,13 @@ const migration: Migration = {
       .collection('accounts')
       .updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
 
-    // 3. Companies and robots: the id of the platform is `platformId`; both can be archived
+    // 3. Companies and robots: the id of the platform is `platformId`; both can be archived.
+    // The unique indexes on the old `id` go first: a unique index treats a removed field as null, so removing `id` from
+    // a second company would collide with the first one
+    await dropIndexIfExists(db, 'companies', 'companies_id')
+    await dropIndexIfExists(db, 'robots', 'robots_id')
+    await dropIndexIfExists(db, 'robot_models', 'robot_models_id')
+    await dropIndexIfExists(db, 'robots', 'robots_company')
     for (const name of ['companies', 'robots']) {
       await db
         .collection(name)
@@ -67,10 +73,6 @@ const migration: Migration = {
         .collection(name)
         .updateMany({ deletedAt: { $exists: false } }, { $set: { deletedAt: null } })
     }
-    await dropIndexIfExists(db, 'companies', 'companies_id')
-    await dropIndexIfExists(db, 'robots', 'robots_id')
-    await dropIndexIfExists(db, 'robot_models', 'robot_models_id')
-    await dropIndexIfExists(db, 'robots', 'robots_company')
 
     // 4. Robot models are found by their key
     await db

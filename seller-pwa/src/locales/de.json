@@ -1,0 +1,92 @@
+{
+  "app": {
+    "title": "Roboterverkäufer",
+    "tagline": "Für die Hersteller der Lieferroboter",
+    "companies": "Unternehmen",
+    "defects": "Roboterdefekte",
+    "team": "Team",
+    "tasks": "Mein Dashboard",
+    "logout": "Abmelden",
+    "skip": "Zum Inhalt",
+    "menu": "Menü",
+    "language": "Sprache"
+  },
+  "language": { "title": "Sprache", "note": "Die App ist in all diesen Sprachen verfügbar." },
+  "years": { "label": "Jahr", "cold": "Kaltspeicher" },
+  "bottomNav": { "label": "Menü des Technikers", "tasks": "Aufgaben", "defects": "Defekte", "scan": "Scannen", "more": "Mehr" },
+  "login": {
+    "title": "Als Roboterverkäufer anmelden",
+    "email": "E-Mail-Adresse",
+    "password": "Passwort",
+    "submit": "Anmelden"
+  },
+  "common": { "cancel": "Abbrechen", "close": "Schließen", "save": "Speichern", "restore": "Wiederherstellen", "archived": "Archiviert", "actions": "Aktionen" },
+  "companies": {
+    "title": "Unternehmen",
+    "intro": "Die Unternehmen, die Ihre Roboter nutzen.",
+    "newCompany": "Neues Unternehmen",
+    "name": "Name",
+    "robots": "Roboter",
+    "defects": "Defekte",
+    "open": "Roboter öffnen",
+    "openRoles": "Rollen öffnen",
+    "archive": "Archivieren",
+    "showArchived": "Archivierte Unternehmen anzeigen"
+  },
+  "robots": {
+    "states": { "online": "Online", "offline": "Offline", "defect": "Defekt", "unknown": "Unbekannt", "stock": "Auf Lager", "out_of_service": "Außer Betrieb" },
+    "kindsShort": { "FOOD": "Essensroboter", "PARCEL": "Paketroboter" },
+    "details": "Details",
+    "call": "Techniker rufen",
+    "reportDefect": "Defekt melden",
+    "battery": "Batterie",
+    "status": "Status",
+    "name": "Name",
+    "model": "Modell"
+  },
+  "severities": { "low": "Klein", "medium": "Mittel", "high": "Groß" },
+  "defects": {
+    "title": "Roboterdefekte",
+    "details": "Details",
+    "replace": "Ersetzen",
+    "cargo": "Essen an Bord",
+    "filters": { "open": "Offen", "openCount": "Offen ({n})", "enroute": "Unterwegs", "enrouteCount": "Unterwegs ({n})", "resolved": "Gelöst" },
+    "states": { "open": "Offen", "en_route": "Unterwegs", "on_site": "Vor Ort", "closed": "Repariert", "replaced": "Ersetzt", "archived": "Archiviert", "unknown": "Unbekannt" }
+  },
+  "defect": {
+    "title": "Defekt von {robot}",
+    "close": "Defekt schließen",
+    "replace": "Roboter ersetzen",
+    "moreActions": "Weitere Aktionen",
+    "technician": "Techniker",
+    "location": "Standort",
+    "next": { "claim": "Ich fahre hin", "arrive": "Ich bin vor Ort", "continue": "Mit dieser Aufgabe weitermachen" }
+  },
+  "condition": {
+    "title": "Zustand des Roboters",
+    "tilted": "Gekippt",
+    "battery": "Batterie",
+    "lidLabel": "Klappe",
+    "lid": { "locked": "Verriegelt", "unlocked": "Entriegelt", "open": "Offen" },
+    "temperature": "Temperatur des Fachs",
+    "connection": "Verbindung",
+    "error": "Fehlercode"
+  },
+  "call": { "button": "Techniker rufen", "confirm": "Rufen", "confirmTitle": "Techniker rufen?" },
+  "help": { "title": "Hilfe anfordern?", "confirm": "Hilfe anfordern" },
+  "moreActions": { "title": "Weitere Aktionen", "replace": "Roboter per QR ersetzen", "close": "Defekt schließen", "help": "Hilfe anfordern", "route": "Route öffnen" },
+  "tasks": {
+    "title": "Mein Dashboard",
+    "statOpen": "Offene Defekte",
+    "statMine": "Meine Aufgaben",
+    "statCargo": "Essen an Bord",
+    "statToday": "Heute gelöst",
+    "tab": { "mine": "Meine Aufgaben", "near": "In der Nähe", "all": "Alle offenen" }
+  },
+  "scanner": { "enter": "Code eingeben" },
+  "matrix": { "right": "Recht", "locked": "Gesperrt", "extra": "Zusätzliches Recht" },
+  "rightGroups": { "companies": "Unternehmen", "robots": "Roboter", "defects": "Defekte", "team": "Team", "archive": "Archiv", "extra": "Zusätzliche Rechte" },
+  "team": { "title": "Team", "role": "Rolle", "email": "E-Mail-Adresse", "archive": "Archiv" },
+  "archive": { "title": "Archiv und Verlauf", "intro": "Nichts wird wirklich gelöscht. Archiviertes bleibt erhalten und kann wiederhergestellt werden." },
+  "replace": { "title": "Roboter ersetzen", "next": "Weiter", "confirm": "Austausch bestätigen" }
+}

@@ -1,8 +1,9 @@
 import { computed, shallowRef, watch } from 'vue'
 import { defineStore } from 'pinia'
-import type { Me, Permission } from '@/api/types'
+import type { Me } from '@/api/types'
 import useGraphql from '@/composables/useGraphql'
 import { ME } from '@/graphql/me.query'
+import { i18n } from '@/i18n'
 import { useAuthStore } from './auth'
 
 /**
@@ -17,14 +18,23 @@ export const useMeStore = defineStore('me', () => {
   /** Anyone with a role may use the panel; a role without more rights is the technician */
   const isSeller = computed(() => me.value?.role != null)
 
-  function can(permission: Permission): boolean {
+  /** A standard right or an extra claim (the API stores both in the same list) */
+  function can(permission: string): boolean {
     return me.value?.permissions.includes(permission) ?? false
   }
+
+  /**
+   * Where this person starts: a technician (who takes defects but does not manage people or companies) lands on the
+   * dashboard, everyone else on the companies.
+   */
+  const home = computed<'tasks' | 'companies'>(() =>
+    can('defects:claim') && !can('companies:create') && !can('accounts:manage') ? 'tasks' : 'companies',
+  )
 
   async function load(force = false): Promise<void> {
     if (me.value && !force) return
     pending ??= apolloClient
-      .query({ query: ME })
+      .query({ query: ME, variables: { language: i18n.global.locale.value } })
       .then(({ data }) => {
         me.value = data.me
       })
@@ -51,5 +61,5 @@ export const useMeStore = defineStore('me', () => {
     },
   )
 
-  return { me, isSeller, can, load, reset }
+  return { me, isSeller, home, can, load, reset }
 })

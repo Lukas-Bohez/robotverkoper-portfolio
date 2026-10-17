@@ -1,35 +1,41 @@
 import { createI18n } from 'vue-i18n'
-import { en } from './en'
-import { nl } from './nl'
+import { LANGUAGES, type Language } from '@/api/types'
 
-export const LANGUAGES = ['nl', 'en'] as const
-export type Language = (typeof LANGUAGES)[number]
+export { LANGUAGES }
+export type { Language }
+
+/** What is shown when a language misses a text (and the language that is always loaded) */
+export const FALLBACK_LANGUAGE: Language = 'en'
 
 const KEY = 'seller-pwa.language'
 
-function initialLanguage(): Language {
+/** The language of the person: what they chose before, else the language of the browser, else English */
+export function initialLanguage(): Language {
   try {
     const saved = localStorage.getItem(KEY)
-    if (saved === 'nl' || saved === 'en') return saved
+    if (LANGUAGES.includes(saved as Language)) return saved as Language
   } catch {
     // No storage: follow the browser
   }
-  return navigator.language.toLowerCase().startsWith('nl') ? 'nl' : 'en'
+  const browser = navigator.language.toLowerCase().slice(0, 2)
+  return LANGUAGES.find(code => code === browser) ?? FALLBACK_LANGUAGE
 }
 
-export const i18n = createI18n({
-  legacy: false,
-  locale: initialLanguage(),
-  fallbackLocale: 'en',
-  messages: { nl, en },
-})
-
-export function setLanguage(language: Language): void {
-  i18n.global.locale.value = language
-  document.documentElement.lang = language
+export function rememberLanguage(language: Language): void {
   try {
     localStorage.setItem(KEY, language)
   } catch {
     // Not kept: the choice applies until the page closes
   }
 }
+
+/**
+ * The texts live in one JSON file per language (src/locales). They are loaded when needed (see
+ * composables/useLanguage.ts): only English and the chosen language travel to the browser.
+ */
+export const i18n = createI18n({
+  legacy: false,
+  locale: FALLBACK_LANGUAGE,
+  fallbackLocale: FALLBACK_LANGUAGE,
+  messages: {},
+})

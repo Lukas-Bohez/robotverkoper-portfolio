@@ -1,0 +1,92 @@
+{
+  "app": {
+    "title": "Vendeur de robots",
+    "tagline": "Pour les fabricants des robots de livraison",
+    "companies": "Entreprises",
+    "defects": "Pannes de robots",
+    "team": "Équipe",
+    "tasks": "Mon tableau de bord",
+    "logout": "Se déconnecter",
+    "skip": "Aller au contenu",
+    "menu": "Menu",
+    "language": "Langue"
+  },
+  "language": { "title": "Langue", "note": "L'application est disponible dans toutes ces langues." },
+  "years": { "label": "Année", "cold": "Stockage froid" },
+  "bottomNav": { "label": "Menu du technicien", "tasks": "Tâches", "defects": "Pannes", "scan": "Scanner", "more": "Plus" },
+  "login": {
+    "title": "Se connecter comme vendeur de robots",
+    "email": "Adresse e-mail",
+    "password": "Mot de passe",
+    "submit": "Se connecter"
+  },
+  "common": { "cancel": "Annuler", "close": "Fermer", "save": "Enregistrer", "restore": "Restaurer", "archived": "Archivé", "actions": "Actions" },
+  "companies": {
+    "title": "Entreprises",
+    "intro": "Les entreprises qui utilisent vos robots.",
+    "newCompany": "Nouvelle entreprise",
+    "name": "Nom",
+    "robots": "Robots",
+    "defects": "Pannes",
+    "open": "Ouvrir les robots",
+    "openRoles": "Ouvrir les rôles",
+    "archive": "Archiver",
+    "showArchived": "Afficher les entreprises archivées"
+  },
+  "robots": {
+    "states": { "online": "En ligne", "offline": "Hors ligne", "defect": "En panne", "unknown": "Inconnu", "stock": "En stock", "out_of_service": "Hors service" },
+    "kindsShort": { "FOOD": "Robot repas", "PARCEL": "Robot colis" },
+    "details": "Détails",
+    "call": "Appeler un technicien",
+    "reportDefect": "Signaler une panne",
+    "battery": "Batterie",
+    "status": "Statut",
+    "name": "Nom",
+    "model": "Modèle"
+  },
+  "severities": { "low": "Petite", "medium": "Moyenne", "high": "Grande" },
+  "defects": {
+    "title": "Pannes de robots",
+    "details": "Détails",
+    "replace": "Remplacer",
+    "cargo": "Repas à bord",
+    "filters": { "open": "Ouvertes", "openCount": "Ouvertes ({n})", "enroute": "En route", "enrouteCount": "En route ({n})", "resolved": "Résolues" },
+    "states": { "open": "Ouverte", "en_route": "En route", "on_site": "Sur place", "closed": "Réparée", "replaced": "Remplacée", "archived": "Archivée", "unknown": "Inconnu" }
+  },
+  "defect": {
+    "title": "Panne de {robot}",
+    "close": "Clôturer la panne",
+    "replace": "Remplacer le robot",
+    "moreActions": "Plus d'actions",
+    "technician": "Technicien",
+    "location": "Emplacement",
+    "next": { "claim": "J'y vais", "arrive": "Je suis sur place", "continue": "Continuer cette tâche" }
+  },
+  "condition": {
+    "title": "État du robot",
+    "tilted": "Incliné",
+    "battery": "Batterie",
+    "lidLabel": "Couvercle",
+    "lid": { "locked": "Verrouillé", "unlocked": "Déverrouillé", "open": "Ouvert" },
+    "temperature": "Température du compartiment",
+    "connection": "Connexion",
+    "error": "Code d'erreur"
+  },
+  "call": { "button": "Appeler un technicien", "confirm": "Appeler", "confirmTitle": "Appeler un technicien ?" },
+  "help": { "title": "Demander de l'aide ?", "confirm": "Demander de l'aide" },
+  "moreActions": { "title": "Plus d'actions", "replace": "Remplacer le robot par QR", "close": "Clôturer la panne", "help": "Demander de l'aide", "route": "Ouvrir l'itinéraire" },
+  "tasks": {
+    "title": "Mon tableau de bord",
+    "statOpen": "Pannes ouvertes",
+    "statMine": "Mes tâches",
+    "statCargo": "Repas à bord",
+    "statToday": "Résolues aujourd'hui",
+    "tab": { "mine": "Mes tâches", "near": "À proximité", "all": "Toutes les ouvertes" }
+  },
+  "scanner": { "enter": "Saisir le code" },
+  "matrix": { "right": "Droit", "locked": "Verrouillé", "extra": "Droit supplémentaire" },
+  "rightGroups": { "companies": "Entreprises", "robots": "Robots", "defects": "Pannes", "team": "Équipe", "archive": "Archive", "extra": "Droits supplémentaires" },
+  "team": { "title": "Équipe", "role": "Rôle", "email": "Adresse e-mail", "archive": "Archive" },
+  "archive": { "title": "Archive et historique", "intro": "Rien n'est vraiment supprimé. Ce qui est archivé est conservé et peut être restauré." },
+  "replace": { "title": "Remplacer le robot", "next": "Continuer", "confirm": "Confirmer l'échange" }
+}

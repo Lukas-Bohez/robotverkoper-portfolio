@@ -44,9 +44,8 @@ const migration: Migration = {
       await defects.updateMany({ [field]: { $exists: false } }, { $set: { [field]: value } })
     }
 
-    // The old status and the id of its own are gone: the document id (`_id`) is the id now
-    await defects.updateMany({}, { $unset: { status: '', id: '' } })
-    // The indexes on those two fields are gone with them (a unique index on a missing field would refuse a second defect)
+    // The indexes on the old status and the old id go first (a unique index on a removed field treats it as null, so
+    // removing `id` from a second defect would collide with the first one)
     for (const name of ['defects_id', 'defects_status']) {
       try {
         await defects.dropIndex(name)
@@ -54,6 +53,8 @@ const migration: Migration = {
         // The index is not there: nothing to drop
       }
     }
+    // The old status and the id of its own are gone: the document id (`_id`) is the id now
+    await defects.updateMany({}, { $unset: { status: '', id: '' } })
 
     await defects.createIndex({ robotId: 1, resolvedAt: 1 }, { name: 'defects_robot' })
     await defects.createIndex({ assignedTo: 1, resolvedAt: 1 }, { name: 'defects_technician' })

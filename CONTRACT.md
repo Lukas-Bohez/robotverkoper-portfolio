@@ -4,7 +4,7 @@ De verkopers-kant (`Lukas/`) en het platform van de bedrijven (Maciej) kennen el
 
 ```
  Verkopers-PWA ──REST──► seller-api ──REST (gateway)──► platform
- (poort 5174)            (4200, eigen SQLite)           (in de demo: platform-simulator, 4100)
+ (poort 5174)            (4200, GraphQL, eigen MongoDB)           (in de demo: platform-simulator, 4100)
                               ▲                                ▲
  Robot-app (simulator) ──pairing──┘                            │
         └────────────── GraphQL, robotcontract #9, x-api-key ──┘
@@ -70,13 +70,19 @@ Veiligheid:
 
 ## 5. De eigen database
 
-Eén SQLite-bestand (`seller-api/data/seller.db`, niet in git). Tabellen: `robot_models` (wat we bouwen), `companies` (de kleine kopie), `robots` (met `api_key_prefix` en laatst bekende status, **zonder sleutel of hash**), `defects`, `accounts` (eigen medewerkers en hun rol), `audit` (logboek), `PRAGMA user_version` voor de migraties.
+Een eigen **MongoDB** (`MONGODB_URI`, standaard poort 27028; in Docker een eigen container). Collecties: `robot_models`, `companies` (de kleine kopie, met `platformId`), `robots` (met `serial`, `apiKeyPrefix` en laatst bekende status, **zonder sleutel of hash**; een robot in het magazijn heeft nog geen bedrijf), `defects` (levenscyclus, toestand van de robot, plaats, veiligheidscontrole), `accounts`, `seller_roles` (rollen zijn data), `role_presets`, `audit` (logboek) en `_migrations`. **Niets wordt echt verwijderd**: overal soft delete (`deletedAt`), met een archief om uit te herstellen, en koude opslag (`coldAt`) voor oude defecten en logregels.
 
-## 6. Rollen van de verkopers zelf
+## Wat het platform er voor de feedback van 16/10 (#137) bij moet kunnen
 
-| Rol | Mag |
+De seller-API vraagt het platform (HTTP + JSON, `Authorization: Bearer <token>`) ook om:
+
+| Methode en pad | Wat |
 | --- | --- |
-| `admin` (Beheerder) | alles: bedrijven maken, rollen van een bedrijf, robots, defecten, team, logboek |
-| `technician` (Technicus) | bedrijven en robots bekijken, robots toekennen, defecten melden en afhandelen. Geen bedrijven maken, geen rollen, geen team, geen logboek |
+| `GET /companies/:id/roles?withArchived=true` | Rollen van een bedrijf, met `names` per taal (nl, en, fr, de) en `archivedAt` |
+| `PATCH /companies/:id/roles/:roleId` | Naam, namen per taal en rechten wijzigen (de vergrendelde beheerdersrol niet) |
+| `POST /companies/:id/roles/:roleId/archive` en `/restore` | Soft delete van een rol (vervangt `DELETE`) |
+| `POST /robots/:id/reinstate` | Een robot weer in dienst nemen (de sleutel werkt weer) |
+| `GET /robots/conditions?ids=a,b` | De toestand van robots: gekanteld, eten aan boord, klep, temperatuur, foutcode, plaats |
+| `PUT /robots/:id/condition` | Alleen voor de simulator: de toestand met de hand zetten |
 
-Beheerders uit `SELLER_ADMIN_EMAILS` zijn altijd beheerder (superadmin: alle permissies). In de demo zijn dat `docent@howest.be` en `lukasbohez@gmail.com`. Verdere accounts voegt een beheerder toe in het scherm Team.
+De robot-app meldt zijn toestand met de GraphQL-mutation `reportCondition(input)` (zelfde `x-api-key` als `reportTelemetry`). Ondersteunt een platform dit (nog) niet, dan toont de verkopers-PWA de toestand als onbekend: alles blijft werken.

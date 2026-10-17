@@ -2,7 +2,14 @@ import { ref } from 'vue'
 import { defineStore } from 'pinia'
 import type { Company, PlatformSource } from '@/api/types'
 import useGraphql from '@/composables/useGraphql'
-import { COMPANIES, COMPANY, CREATE_COMPANY, type CreateCompanyVariables } from '@/graphql/companies.query'
+import {
+  COMPANIES,
+  COMPANY,
+  CREATE_COMPANY,
+  REMOVE_COMPANY,
+  RESTORE_COMPANY,
+  type CreateCompanyVariables,
+} from '@/graphql/companies.query'
 
 /** The companies that use our robots (a copy of the platform: no staff, no customers) */
 export const useCompaniesStore = defineStore('companies', () => {
@@ -11,8 +18,9 @@ export const useCompaniesStore = defineStore('companies', () => {
   /** PLATFORM: just answered by the platform. CACHE: the platform did not answer, this is the last known list */
   const source = ref<PlatformSource>('PLATFORM')
 
-  async function load(): Promise<void> {
-    const { data } = await apolloClient.query({ query: COMPANIES })
+  /** The companies; the archived ones only when asked for (they are never deleted, so they can be restored) */
+  async function load(withDeleted = false): Promise<void> {
+    const { data } = await apolloClient.query({ query: COMPANIES, variables: { withDeleted } })
     items.value = data.companies.items
     source.value = data.companies.source
   }
@@ -35,5 +43,19 @@ export const useCompaniesStore = defineStore('companies', () => {
     return data.createCompany
   }
 
-  return { items, source, load, find, create }
+  /** Archives a company (soft delete): it leaves the list but nothing is lost */
+  async function remove(id: string): Promise<Company> {
+    const { data } = await apolloClient.mutate({ mutation: REMOVE_COMPANY, variables: { id } })
+    if (!data) throw new Error('No company came back')
+    items.value = items.value.filter(company => company.id !== id)
+    return data.removeCompany
+  }
+
+  async function restore(id: string): Promise<Company> {
+    const { data } = await apolloClient.mutate({ mutation: RESTORE_COMPANY, variables: { id } })
+    if (!data) throw new Error('No company came back')
+    return data.restoreCompany
+  }
+
+  return { items, source, load, find, create, remove, restore }
 })
