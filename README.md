@@ -1,8 +1,11 @@
 # Lukas
 
+> **Portfolio copy.** This repository holds only my part (the seller side) of a school team project, with its full git history. The rest of the project (the platform of the companies, built by a teammate) is not included; links that point at it open the original team repository. / Dit is alleen mijn deel van een schoolproject in team, met de volledige git-geschiedenis.
+
+
 Alles wat Lukas Bohez zelfstandig bouwt en bezit, in één map. **Deze map draait zonder de rest van het project**: ze heeft een eigen API, een eigen database en een eigen start. Van het platform van Maciej (de bedrijven, hun personeel en klanten, het menu, de bestellingen) staat hier niets, en ze gebruikt er niets van. Het platform wordt in de demo gespeeld door een **simulator**.
 
-Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](../Mitura/README.md). **Wie wat doet, staat bovenaan de [README van het project](../README.md#wie-doet-wat).**
+Wat Maciej bouwt, staat apart: zie [`../Mitura/README.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/Mitura/README.md). **Wie wat doet, staat bovenaan de [README van het project](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/README.md#wie-doet-wat).**
 
 ## Zo lees je dit deel, in deze volgorde
 
@@ -10,18 +13,18 @@ Van de vraag van de klant tot het dossier. Elke stap verwijst naar de volgende.
 
 | Stap | Lees | Je ziet |
 | --- | --- | --- |
-| 1 | [`../docs/klantfeedback-129.md`](../docs/klantfeedback-129.md) | Wat de klant vroeg, en per wens wat er gedaan is en waar je het ziet |
+| 1 | [`../docs/klantfeedback-129.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-129.md) | Wat de klant vroeg, en per wens wat er gedaan is en waar je het ziet |
 | 2 | [`design/README.md`](design/README.md) en het Figma-bestand | **Het ontwerp, eerst**: designsysteem, flow, 7 componenten, 10 schermen voor desktop en telefoon, donkere modus |
 | 3 | [`CONTRACT.md`](CONTRACT.md) | Wat gedeeld wordt met het platform van Maciej, en hoe de sleutel vanzelf naar de simulator gaat |
 | 4 | [`seller-api/README.md`](seller-api/README.md) en [`platform-simulator/README.md`](platform-simulator/README.md) | De API met eigen database, en het platform dat hij speelt |
 | 5 | [`seller-pwa/README.md`](seller-pwa/README.md) | De PWA die het ontwerp uit stap 2 bouwt |
 | 6 | [`simulator/README.md`](simulator/README.md) | De robot-app (Flutter) |
-| 7 | [`../docs/demo-draaiboek.md`](../docs/demo-draaiboek.md) (2a en 2c) | Alles starten en tonen, stap voor stap |
+| 7 | [`../docs/demo-draaiboek.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/demo-draaiboek.md) (2a en 2c) | Alles starten en tonen, stap voor stap |
 | 8 | [Controleren](#controleren) | Tests en type-check |
-| 9 | [Wie wat doet](../README.md#wie-doet-wat) en [`../docs/bewijs-wie-schreef-wat-2026-10-15.md`](../docs/bewijs-wie-schreef-wat-2026-10-15.md) | Wie wat deed, met bewijs uit git |
-| 10 | [`../docs/dossier-lukas.md`](../docs/dossier-lukas.md) en het [projectdossier](../README.md#projectdossier) | De checklists van de leerkrachten, eerlijk ingevuld, met werktijd, succes en moeilijkheid |
+| 9 | [Wie wat doet](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/README.md#wie-doet-wat) en [`../docs/bewijs-wie-schreef-wat-2026-10-15.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/bewijs-wie-schreef-wat-2026-10-15.md) | Wie wat deed, met bewijs uit git |
+| 10 | [`../docs/dossier-lukas.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/dossier-lukas.md) en het [projectdossier](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/README.md#projectdossier) | De checklists van de leerkrachten, eerlijk ingevuld, met werktijd, succes en moeilijkheid |
 
-**Gebouwd naar de wensen van de klant** ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129)): een eigen PWA voor de robotverkoper, zonder personeel of klantgegevens, met defecten en vervangen, rollen van bedrijven, bekijken als rol, één geïsoleerde etenrobot en geen Google-login. Per wens staat in [`../docs/klantfeedback-129.md`](../docs/klantfeedback-129.md) wat er gedaan is en waar je het ziet.
+**Gebouwd naar de wensen van de klant** ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129)): een eigen PWA voor de robotverkoper, zonder personeel of klantgegevens, met defecten en vervangen, rollen van bedrijven, bekijken als rol, één geïsoleerde etenrobot en geen Google-login. Per wens staat in [`../docs/klantfeedback-129.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-129.md) wat er gedaan is en waar je het ziet.
 
 ## Wat staat waar
 
@@ -91,11 +94,11 @@ Een gsm elders op het netwerk krijgt de sleutel niet vanzelf: de verkoper kiest 
 | Bedrijven, rollen, robots | Komen uit de **platform-simulator**: verzonnen gegevens | Echte gegevens in zijn database |
 | Start | `npm run dev` in `Lukas/`, of de launcher | `npm run dev` in de root |
 | Pakketten | Eigen `package.json` en lockfile per onderdeel, buiten de workspaces | Workspaces `packages/*` |
-| CI | [`.github/workflows/lukas.yml`](../.github/workflows/lukas.yml) | `ci.yml` |
+| CI | [`.github/workflows/lukas.yml`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/.github/workflows/lukas.yml) | `ci.yml` |
 
 Gedeeld is alleen: de lijst met **17 permissie-sleutels** (een kopie) en het **robotcontract** ([#9](https://github.com/afsd-mct/26-ratty-raccoon/issues/9)), dat de robot-app spreekt en dat Maciej's API echt implementeert.
 
-De code van Lukas die nog in de gedeelde pakketten staat (inloggen, bedrijven, personeel, rollen, thema, vertalingen: de flows H tot en met M), staat in [`../docs/flow-ownership-lukas.json`](../docs/flow-ownership-lukas.json) en [`../COLLABORATORS.md`](../COLLABORATORS.md). Die kan niet zomaar naar deze map: ze deelt de API en de PWA met het platform van Maciej.
+De code van Lukas die nog in de gedeelde pakketten staat (inloggen, bedrijven, personeel, rollen, thema, vertalingen: de flows H tot en met M), staat in [`../docs/flow-ownership-lukas.json`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/flow-ownership-lukas.json) en [`../COLLABORATORS.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/COLLABORATORS.md). Die kan niet zomaar naar deze map: ze deelt de API en de PWA met het platform van Maciej.
 
 ## Controleren
 
@@ -107,4 +110,4 @@ npm run type-check
 
 Per onderdeel: `platform-simulator` 31 tests, `seller-api` 112 unit- en 137 e2e-tests (`npm test` en `npm run test:e2e`, met een MongoDB in het geheugen), `seller-pwa` 50 tests (Vitest) en de Flutter-app 93 tests (`flutter test` in `simulator/`).
 
-Wie wat schreef, staat in [`../docs/bijdragen.md`](../docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](../docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.
+Wie wat schreef, staat in [`../docs/bijdragen.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/bijdragen.md), in [`../docs/bijdragen-lukas-per-flow.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/bijdragen-lukas-per-flow.md) en in de git-geschiedenis (`git log --follow`, `git blame`). De simulator en de launcher zijn met `git mv` verhuisd van `apps/`, dus hun geschiedenis is mee.

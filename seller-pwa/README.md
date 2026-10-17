@@ -1,6 +1,6 @@
 # seller-pwa: de PWA voor de verkopers van de robots
 
-De **tweede PWA** van het project, naast `packages/platform` (de PWA van de bedrijven die robots **kopen**). Deze is voor de mensen die de robots **verkopen**: de robotfabrikant, "superadmin" genoemd in de klantfeedback ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129), zie [`docs/klantfeedback-129.md`](../../docs/klantfeedback-129.md)).
+De **tweede PWA** van het project, naast `packages/platform` (de PWA van de bedrijven die robots **kopen**). Deze is voor de mensen die de robots **verkopen**: de robotfabrikant, "superadmin" genoemd in de klantfeedback ([#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129), zie [`docs/klantfeedback-129.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-129.md)).
 
 Eigenaar: **Lukas** (zie [`../README.md`](../README.md)). De app staat buiten de npm-workspaces (eigen `package.json` en lockfile) en praat **alleen met de [`seller-api`](../seller-api/)**, niet met de API van het platform. Het ontwerp staat eerst in Figma (pagina's Inspiratie, Components en Design).
 
@@ -55,4 +55,4 @@ npm run build            # productiebuild + typecheck
 
 - **Firebase-adressen:** de app draait op `localhost:5174`; `localhost` staat standaard bij de toegestane domeinen van Firebase. Staat de app op een eigen adres, voeg dat dan toe bij *Authentication → Settings → Authorized domains*.
 - **Rechten:** de knoppen volgen de rol, maar de **API beslist** bij elke oproep. Een schermfilter is geen beveiliging.
-- **CI:** [`.github/workflows/lukas.yml`](../../.github/workflows/lukas.yml) controleert type-check, tests en build.
+- **CI:** [`.github/workflows/lukas.yml`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/.github/workflows/lukas.yml) controleert type-check, tests en build.

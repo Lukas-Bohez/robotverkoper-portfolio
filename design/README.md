@@ -2,11 +2,11 @@
 
 Het ontwerp is **eerst in Figma gemaakt, daarna pas in code**, zoals de klant vroeg in [#129](https://github.com/afsd-mct/26-ratty-raccoon/issues/129) (*"Werken met Figma, niet meteen in code"*). Het bestand staat in de repo: [`Advanced Fullstack Development.fig`](<../Advanced Fullstack Development.fig>) (open het in Figma met *File → Open file*, of sleep het erin). De afbeeldingen hieronder zijn exports van dat bestand, zodat je het ook op GitHub kunt bekijken.
 
-**Van wie:** dit ontwerp is van **Lukas** en gaat enkel over zijn deel, het verkopersplatform. Er staan geen schermen van Maciej in en er wordt niets over beweerd ([wie wat doet, bovenaan de README](../../README.md#wie-doet-wat)).
+**Van wie:** dit ontwerp is van **Lukas** en gaat enkel over zijn deel, het verkopersplatform. Er staan geen schermen van Maciej in en er wordt niets over beweerd ([wie wat doet, bovenaan de README](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/README.md#wie-doet-wat)).
 
 Het bestand heeft drie pagina's: **Inspiratie** (waar het ontwerp op leunt), **Components** (de bouwstenen met varianten) en **Design** (het designsysteem, de flows en alle schermen).
 
-**Twee gebruikers, twee schermen.** Sinds de feedback van de klant van 16/10/2026 ([#137](https://github.com/afsd-mct/26-ratty-raccoon/issues/137), [`../../docs/klantfeedback-137.md`](../../docs/klantfeedback-137.md)) is het ontwerp opgesplitst naar wie het gebruikt:
+**Twee gebruikers, twee schermen.** Sinds de feedback van de klant van 16/10/2026 ([#137](https://github.com/afsd-mct/26-ratty-raccoon/issues/137), [`../../docs/klantfeedback-137.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-137.md)) is het ontwerp opgesplitst naar wie het gebruikt:
 
 | Wie | Waar | Schermen |
 | --- | --- | --- |
@@ -175,7 +175,7 @@ Elk scherm gebruikt **instances** van deze componenten (meer dan 780 in totaal),
 
 ## Inspiratie
 
-Het ontwerp leunt op de feedback van de klant, op vlootbeheer-dashboards en op de bezorgrobots van Uber Eats. Per wens van de klant staat in [`../../docs/klantfeedback-129.md`](../../docs/klantfeedback-129.md) en [`../../docs/klantfeedback-137.md`](../../docs/klantfeedback-137.md) wat er gedaan is.
+Het ontwerp leunt op de feedback van de klant, op vlootbeheer-dashboards en op de bezorgrobots van Uber Eats. Per wens van de klant staat in [`../../docs/klantfeedback-129.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-129.md) en [`../../docs/klantfeedback-137.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/klantfeedback-137.md) wat er gedaan is.
 
 | | |
 | --- | --- |

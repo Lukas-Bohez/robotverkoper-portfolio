@@ -1,6 +1,6 @@
 # Delivery robot: de robotsimulator
 
-Flutter-app (`com.DeliveryBot.bot`, op Play Console als "Delivery robot"): **de gsm is de robot**. Eigenaar: Lukas (zie [`COLLABORATORS.md`](../../COLLABORATORS.md)).
+Flutter-app (`com.DeliveryBot.bot`, op Play Console als "Delivery robot"): **de gsm is de robot**. Eigenaar: Lukas (zie [`COLLABORATORS.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/COLLABORATORS.md)).
 
 - Leg de gsm plat neer, met het scherm naar boven. Kantelen (> 50° gedurende 0,6 s) en schudden (een schok van meer dan 12 m/s² boven de zwaartekracht) worden incidenten.
 - De robot rijdt zijn rit op wandeltempo (1,4 m/s), met een tijdsfactor van 1×, 5× of 10×. Hij stopt bij de zaak (laden) en bij de klant (vak openen, deksel dicht → geleverd), en keert daarna terug naar het station.
@@ -9,7 +9,7 @@ Flutter-app (`com.DeliveryBot.bot`, op Play Console als "Delivery robot"): **de 
 
 ## Waarom Flutter en geen PWA?
 
-Het platform is een PWA, zoals de klant liefst wil (_"PWA maken, web-app liefst"_). De simulator is bewust een **aparte Flutter-app**. De klant liet dat toe (_"flutter kan en mag ook"_, zie [`docs/blueprint.md`](../../docs/blueprint.md) §8).
+Het platform is een PWA, zoals de klant liefst wil (_"PWA maken, web-app liefst"_). De simulator is bewust een **aparte Flutter-app**. De klant liet dat toe (_"flutter kan en mag ook"_, zie [`docs/blueprint.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/blueprint.md) §8).
 
 **Waarom:**
 
@@ -17,7 +17,7 @@ Het platform is een PWA, zoals de klant liefst wil (_"PWA maken, web-app liefst"
 - **De sensoren van de gsm werken zonder https.** In een browser zijn bewegingssensoren (`DeviceMotionEvent`) enkel beschikbaar in een _secure context_ (https of `localhost`). Een gsm die de dev-server op de laptop opent via `http://192.168.x.x:5173` krijgt ze dus niet. Op een iPhone moet de gebruiker bovendien bij elk bezoek toestemming geven. Een Android-app leest de versnellingsmeter rechtstreeks (`sensors_plus`).
 - **Trillen als feedback.** De Vibration API van de browser bestaat niet in Safari. Flutter gebruikt de haptische feedback van het toestel (`HapticFeedback`).
 - **Eén codebase, drie doelen.** Dezelfde code draait als Android-app (de gsm is de robot), als Windows-app (naast het platform op dezelfde laptop, gestart door de demo-launcher) en in de browser.
-- **Eigen inbreng.** Flutter zit niet in de cursus. Omdat de cursus Vue verplicht maakt voor de frontend, maakt Lukas ook het bedrijfsbeheer in de Vue-PWA (zie [`docs/blueprint.md`](../../docs/blueprint.md) §10).
+- **Eigen inbreng.** Flutter zit niet in de cursus. Omdat de cursus Vue verplicht maakt voor de frontend, maakt Lukas ook het bedrijfsbeheer in de Vue-PWA (zie [`docs/blueprint.md`](https://github.com/afsd-mct/26-ratty-raccoon/blob/develop/docs/blueprint.md) §10).
 
 **Wat het kost:**
 
